@@ -277,15 +277,17 @@
       min-width: 0;
     }
 
-    .form-row-fixed input {
-      min-width: 0;
+    input[type="date"] {
+      -webkit-appearance: none;
+      appearance: none;
+      display: block;
+      width: 100%;
       max-width: 100%;
-      padding: 10px 8px;
-      font-size: 13px;
     }
 
     @media (max-width: 480px) {
       .form-row { grid-template-columns: 1fr; }
+      .form-row-fixed { grid-template-columns: 1fr; }
       .form-card { padding: 24px 20px; }
     }
   </style>
