@@ -483,7 +483,7 @@
       const pw = document.getElementById('passwordInput').value;
       const hash = await hashPassword(pw);
       if (hash === ADMIN_PASSWORD_HASH) {
-        sessionStorage.setItem('adminAuth', '1');
+        localStorage.setItem('adminAuth', '1');
         showDashboard();
       } else {
         document.getElementById('loginError').style.display = 'block';
@@ -492,7 +492,7 @@
     }
 
     function doLogout() {
-      sessionStorage.removeItem('adminAuth');
+      localStorage.removeItem('adminAuth');
       document.getElementById('dashboard').style.display = 'none';
       document.getElementById('loginScreen').style.display = 'flex';
       document.getElementById('passwordInput').value = '';
@@ -512,7 +512,7 @@
     }
 
     // 세션 유지
-    if (sessionStorage.getItem('adminAuth') === '1') showDashboard();
+    if (localStorage.getItem('adminAuth') === '1') showDashboard();
 
     // ── 데이터 로드 ──
     let allReports = [];
