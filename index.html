@@ -17,11 +17,10 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+      font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
       background: #f0f4f0;
       min-height: 100vh;
       padding: 24px 16px 48px;
-      width: 100%;
     }
 
     .container {
@@ -34,36 +33,19 @@
       background: #2E7D32;
       color: white;
       border-radius: 12px 12px 0 0;
-      padding: 16px 32px 20px;
+      padding: 20px 32px 24px;
       text-align: center;
     }
 
-    .header-logo {
-      margin-bottom: 8px;
-    }
+    .header-logo { margin-bottom: 10px; }
+    .header-logo img { height: 20px; width: auto; display: inline-block; }
 
-    .header-logo img {
-      height: 20px;
-      width: auto;
-      display: inline-block;
-    }
-
-    .header-text h1 {
-      font-family: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
-      font-size: 35px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .header-text p {
-      font-size: 13px;
-      opacity: 0.8;
-    }
+    .header-text h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+    .header-text p { font-size: 13px; opacity: 0.85; }
 
     @media (max-width: 480px) {
-      .header { padding: 12px 20px 16px; }
-      .header-text h1 { font-size: 23px; }
-      .header-logo img { height: 16px; }
+      .header { padding: 14px 20px 18px; }
+      .header-text h1 { font-size: 22px; }
     }
 
     .form-card {
@@ -73,61 +55,68 @@
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     }
 
+    @media (max-width: 480px) {
+      .form-card { padding: 24px 16px; }
+    }
+
     .section-divider {
       border: none;
       border-top: 2px solid #E8F5E9;
-      margin: 24px 0 20px;
+      margin: 24px 0;
     }
 
+    /* 2열 그리드 */
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 14px;
     }
 
-    .form-group {
-      margin-bottom: 18px;
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .form-row .form-group { margin-bottom: 16px; }
     }
+
+    .form-group { margin-bottom: 20px; }
+    .form-row .form-group { margin-bottom: 0; }
 
     label {
       display: block;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       color: #333;
-      margin-bottom: 6px;
+      margin-bottom: 7px;
     }
 
-    label .required {
-      color: #e53935;
-      margin-left: 2px;
-    }
+    label .required { color: #e53935; margin-left: 2px; }
 
     input[type="date"],
     input[type="text"],
-    input[type="number"],
     select,
     textarea {
       width: 100%;
-      padding: 10px 14px;
+      padding: 11px 14px;
       border: 1.5px solid #ddd;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 15px;
       font-family: inherit;
       color: #333;
       background: #fafafa;
       transition: border-color 0.2s, box-shadow 0.2s;
       outline: none;
+      -webkit-appearance: none;
+      appearance: none;
     }
+
+    input[type="date"] { display: block; max-width: 100%; }
 
     input:focus, select:focus, textarea:focus {
       border-color: #2E7D32;
-      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.12);
+      box-shadow: 0 0 0 3px rgba(46,125,50,0.12);
       background: white;
     }
 
-    input.error, select.error, textarea.error {
-      border-color: #e53935;
-    }
+    input.error, select.error, textarea.error { border-color: #e53935; }
 
     textarea {
       resize: vertical;
@@ -135,62 +124,61 @@
       line-height: 1.6;
     }
 
-    .attendee-row {
+    /* 체크박스 칩 */
+    .chip-group {
       display: flex;
+      flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 8px;
-      align-items: center;
+      margin-top: 4px;
     }
 
-    .attendee-row input { flex: 1; margin-bottom: 0; }
-
-    .btn-icon {
-      width: 34px;
-      height: 34px;
-      border: none;
-      border-radius: 6px;
+    .chip-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: 1.5px solid #ddd;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
       cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: background 0.15s;
+      transition: all 0.15s;
+      user-select: none;
+      background: #fafafa;
     }
 
-    .btn-add { background: #E8F5E9; color: #2E7D32; }
-    .btn-add:hover { background: #C8E6C9; }
-    .btn-remove { background: #FFEBEE; color: #e53935; }
-    .btn-remove:hover { background: #FFCDD2; }
-
-    .btn-add-wrap {
-      display: flex;
-      justify-content: flex-start;
-      margin-top: 6px;
+    .chip-label input[type="checkbox"] {
+      display: none;
     }
 
-    .btn-add-text {
-      background: none;
-      border: 1.5px dashed #81C784;
+    .chip-label:hover {
+      border-color: #2E7D32;
       color: #2E7D32;
-      padding: 7px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.15s;
+      background: #f1f8f1;
     }
 
-    .btn-add-text:hover { background: #E8F5E9; }
+    .chip-label.selected {
+      background: #2E7D32;
+      border-color: #2E7D32;
+      color: white;
+    }
 
+    .chip-hint {
+      font-size: 12px;
+      color: #888;
+      margin-top: 8px;
+    }
+
+    /* 기도제목 */
     .prayer-box {
       border: 1.5px solid #FFCDD2;
       border-radius: 8px;
-      padding: 10px 14px;
+      padding: 11px 14px;
       background: #FFF8F8;
       width: 100%;
       min-height: 90px;
-      font-size: 14px;
+      font-size: 15px;
       font-family: inherit;
       color: #333;
       resize: vertical;
@@ -201,12 +189,13 @@
 
     .prayer-box:focus {
       border-color: #e53935;
-      box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1);
+      box-shadow: 0 0 0 3px rgba(229,57,53,0.1);
       background: white;
     }
 
     .prayer-label { color: #C62828 !important; }
 
+    /* 제출 버튼 */
     .submit-btn {
       width: 100%;
       padding: 16px;
@@ -219,14 +208,35 @@
       cursor: pointer;
       margin-top: 28px;
       font-family: inherit;
-      transition: background 0.2s, transform 0.1s;
+      transition: background 0.2s;
       letter-spacing: 0.03em;
     }
 
     .submit-btn:hover { background: #1B5E20; }
-    .submit-btn:active { transform: scale(0.99); }
     .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
 
+    /* 성공 화면 */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 48px 24px;
+    }
+
+    .success-screen .icon { font-size: 64px; margin-bottom: 16px; }
+    .success-screen h2 { color: #2E7D32; margin-bottom: 8px; }
+    .success-screen p { color: #666; font-size: 14px; margin-bottom: 24px; line-height: 1.7; }
+    .success-screen button {
+      background: #2E7D32;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* 토스트 */
     .toast {
       display: none;
       position: fixed;
@@ -248,56 +258,7 @@
     .toast.success { background: #2E7D32; }
     .toast.error { background: #c62828; }
 
-    .success-screen {
-      display: none;
-      text-align: center;
-      padding: 48px 24px;
-    }
-
-    .success-screen .icon { font-size: 64px; margin-bottom: 16px; }
-    .success-screen h2 { color: #2E7D32; margin-bottom: 8px; }
-    .success-screen p { color: #666; font-size: 14px; margin-bottom: 24px; }
-    .success-screen button {
-      background: #2E7D32;
-      color: white;
-      border: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-size: 15px;
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .hint {
-      font-size: 12px;
-      color: #888;
-      margin-top: 4px;
-    }
-
-    .form-row-fixed {
-      display: grid;
-      grid-template-columns: 0.7fr 1fr;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .form-row-fixed .form-group {
-      min-width: 0;
-    }
-
-    input[type="date"] {
-      -webkit-appearance: none;
-      appearance: none;
-      display: block;
-      width: 100%;
-      max-width: 100%;
-    }
-
-    @media (max-width: 480px) {
-      .form-row { grid-template-columns: 1fr; }
-      .form-row-fixed { grid-template-columns: 1fr; }
-      .form-card { padding: 24px 20px; }
-    }
+    .hint { font-size: 12px; color: #888; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -324,75 +285,90 @@
       <!-- 폼 -->
       <form id="reportForm">
 
-        <div class="form-group">
-          <label for="choJang">초장 <span class="required">*</span></label>
-          <select id="choJang" required>
-            <option value="">선택하세요</option>
-            <option value="1초장">1초장</option>
-            <option value="2초장">2초장</option>
-            <option value="3초장">3초장</option>
-            <option value="4초장">4초장</option>
-            <option value="5초장">5초장</option>
-            <option value="6초장">6초장</option>
-          </select>
+        <!-- 초장 + 쉴물가 -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="choJang">초장 <span class="required">*</span></label>
+            <select id="choJang" required>
+              <option value="">선택하세요</option>
+              <option value="1초장">1초장</option>
+              <option value="2/3초장">2/3초장</option>
+              <option value="4초장">4초장</option>
+              <option value="5초장">5초장</option>
+              <option value="6초장">6초장</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="shilMulGa">쉴물가(또는 목자이름) <span class="required">*</span></label>
+            <input type="text" id="shilMulGa" placeholder="예: ○○○ 쉴물가" required />
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="shilMulGa">쉴물가 <span class="required">*</span></label>
-          <input type="text" id="shilMulGa" placeholder="예: ○○○ 쉴물가" required />
-        </div>
-
-        <div class="form-row-fixed">
+        <!-- 모임 날짜 + 장소 -->
+        <div class="form-row">
           <div class="form-group">
             <label for="meetingDate">모임 날짜 <span class="required">*</span></label>
             <input type="date" id="meetingDate" required />
           </div>
-
           <div class="form-group">
-            <label for="meetingPlace">장소 <span class="required">*</span></label>
-            <input type="text" id="meetingPlace" placeholder="예: ○○○ 집, 교회 소그룹실" required />
+            <label for="meetingPlace">모임 장소 <span class="required">*</span></label>
+            <input type="text" id="meetingPlace" placeholder="예: 0-0반 교실, 양덕관" required />
           </div>
         </div>
 
         <hr class="section-divider" />
 
+        <!-- 참석자 -->
         <div class="form-group">
-          <label>참석자 <span class="required">*</span></label>
-          <div id="attendeeList">
-            <div class="attendee-row">
-              <input type="text" placeholder="이름" class="attendee-input" required />
-              <button type="button" class="btn-icon btn-remove" onclick="removeAttendee(this)" style="display:none">×</button>
-            </div>
-          </div>
-          <div class="btn-add-wrap">
-            <button type="button" class="btn-add-text" onclick="addAttendee()">+ 참석자 추가</button>
-          </div>
-          <div class="hint">참석 인원수는 자동으로 계산됩니다</div>
+          <label for="attendees">참석자 <span class="required">*</span></label>
+          <textarea id="attendees" placeholder="예) 홍길동, 김철수, 이영희" required></textarea>
+          <div class="hint">쉼표(,)로 구분하여 입력하면 인원수가 자동 계산됩니다</div>
         </div>
 
         <hr class="section-divider" />
 
+        <!-- 불참자 및 사유 -->
         <div class="form-group">
-          <label for="absentees">불참인원 및 사유</label>
+          <label for="absentees">불참자 및 사유</label>
           <textarea id="absentees" placeholder="예) 김○○ - 출장&#10;이○○ - 건강 문제&#10;(없으면 비워두세요)"></textarea>
         </div>
 
         <hr class="section-divider" />
 
+        <!-- 모임 내용 (칩) -->
         <div class="form-group">
-          <label for="content">모임 내용 <span class="required">*</span></label>
-          <textarea id="content" style="min-height:120px" placeholder="나눈 말씀, 주요 내용, 특이사항 등을 기록해 주세요" required></textarea>
+          <label>모임 내용 <span class="required">*</span></label>
+          <div class="chip-group" id="contentChips">
+            <label class="chip-label" onclick="toggleChip(this)">
+              <input type="checkbox" value="말씀나눔" /> 말씀나눔
+            </label>
+            <label class="chip-label" onclick="toggleChip(this)">
+              <input type="checkbox" value="기도제목나눔" /> 기도제목나눔
+            </label>
+            <label class="chip-label" onclick="toggleChip(this)">
+              <input type="checkbox" value="교제" /> 교제
+            </label>
+            <label class="chip-label" onclick="toggleChip(this)">
+              <input type="checkbox" value="식사" /> 식사
+            </label>
+            <label class="chip-label" onclick="toggleChip(this)">
+              <input type="checkbox" value="기타" /> 기타
+            </label>
+          </div>
+          <div class="chip-hint">여러 항목을 중복 선택할 수 있습니다</div>
         </div>
 
         <hr class="section-divider" />
 
+        <!-- 오늘 모임은 어땠나요? -->
         <div class="form-group">
-          <label for="evaluation">모임 평가 및 건의사항</label>
-          <textarea id="evaluation" style="min-height:100px" placeholder="모임에 대한 평가나 건의사항을 자유롭게 적어주세요&#10;(없으면 비워두세요)"></textarea>
+          <label for="evaluation">오늘 모임은 어땠나요?</label>
+          <textarea id="evaluation" placeholder="모임 후 느낀 점이나 짧은 소감을 편하게 적어주세요&#10;(없으면 비워두세요)"></textarea>
         </div>
 
         <hr class="section-divider" />
 
+        <!-- 기도제목 -->
         <div class="form-group">
           <label for="prayerRequest" class="prayer-label">🙏 기도제목</label>
           <textarea class="prayer-box" id="prayerRequest" placeholder="기도제목을 적어주세요&#10;(없으면 비워두세요)"></textarea>
@@ -403,52 +379,38 @@
     </div>
   </div>
 
-  <!-- 토스트 알림 -->
   <div class="toast" id="toast"></div>
 
   <script>
-    // 입력 필드 포커스 시 키보드에 가리지 않도록 자동 스크롤
+    // 입력 시 키보드에 가리지 않도록 스크롤
     document.addEventListener('focusin', function(e) {
       const el = e.target;
       if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
         setTimeout(function() {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 350);
       }
     });
 
-    // 오늘 날짜로 기본 설정
+    // 오늘 날짜 기본값
     document.getElementById('meetingDate').value = new Date().toISOString().split('T')[0];
 
-    function addAttendee() {
-      const list = document.getElementById('attendeeList');
-      const row = document.createElement('div');
-      row.className = 'attendee-row';
-      row.innerHTML = `
-        <input type="text" placeholder="이름" class="attendee-input" />
-        <button type="button" class="btn-icon btn-remove" onclick="removeAttendee(this)">×</button>
-      `;
-      list.appendChild(row);
-      updateRemoveButtons();
-      row.querySelector('input').focus();
+    // 칩 토글
+    function toggleChip(label) {
+      label.classList.toggle('selected');
+      const cb = label.querySelector('input[type="checkbox"]');
+      cb.checked = label.classList.contains('selected');
     }
 
-    function removeAttendee(btn) {
-      btn.parentElement.remove();
-      updateRemoveButtons();
+    // 선택된 모임 내용 가져오기
+    function getSelectedContent() {
+      const checked = document.querySelectorAll('#contentChips input[type="checkbox"]:checked');
+      return Array.from(checked).map(cb => cb.value).join(', ');
     }
 
-    function updateRemoveButtons() {
-      const rows = document.querySelectorAll('.attendee-row');
-      rows.forEach((row, i) => {
-        const btn = row.querySelector('.btn-remove');
-        btn.style.display = rows.length > 1 ? 'flex' : 'none';
-      });
-    }
-
-    function getAttendees() {
-      const inputs = document.querySelectorAll('.attendee-input');
-      return Array.from(inputs).map(i => i.value.trim()).filter(v => v !== '');
+    // 참석자 파싱
+    function parseAttendees(text) {
+      return text.split(',').map(s => s.trim()).filter(Boolean);
     }
 
     function showToast(msg, type = 'success') {
@@ -461,12 +423,8 @@
 
     function resetForm() {
       document.getElementById('reportForm').reset();
-      document.getElementById('attendeeList').innerHTML = `
-        <div class="attendee-row">
-          <input type="text" placeholder="이름" class="attendee-input" required />
-          <button type="button" class="btn-icon btn-remove" onclick="removeAttendee(this)" style="display:none">×</button>
-        </div>`;
       document.getElementById('meetingDate').value = new Date().toISOString().split('T')[0];
+      document.querySelectorAll('.chip-label').forEach(l => l.classList.remove('selected'));
       document.getElementById('successScreen').style.display = 'none';
       document.getElementById('reportForm').style.display = 'block';
     }
@@ -474,9 +432,16 @@
     document.getElementById('reportForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
-      const attendees = getAttendees();
-      if (attendees.length === 0) {
+      const attendeesRaw = document.getElementById('attendees').value.trim();
+      const attendeeList = parseAttendees(attendeesRaw);
+      if (attendeeList.length === 0) {
         showToast('참석자를 한 명 이상 입력해 주세요.', 'error');
+        return;
+      }
+
+      const content = getSelectedContent();
+      if (!content) {
+        showToast('모임 내용을 한 가지 이상 선택해 주세요.', 'error');
         return;
       }
 
@@ -485,10 +450,10 @@
         choJang: document.getElementById('choJang').value,
         shilMulGa: document.getElementById('shilMulGa').value.trim(),
         meetingPlace: document.getElementById('meetingPlace').value.trim(),
-        attendeeCount: attendees.length,
-        attendees: attendees.join(', '),
+        attendeeCount: attendeeList.length,
+        attendees: attendeeList.join(', '),
         absentees: document.getElementById('absentees').value.trim(),
-        content: document.getElementById('content').value.trim(),
+        content: content,
         evaluation: document.getElementById('evaluation').value.trim(),
         prayerRequest: document.getElementById('prayerRequest').value.trim(),
       };
