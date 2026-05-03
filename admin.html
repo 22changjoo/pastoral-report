@@ -164,6 +164,7 @@
       flex-direction: column;
       gap: 4px;
       flex: 1;
+      min-width: 0;
     }
 
     .filter-field label {
@@ -175,11 +176,12 @@
 
     .filter-date-row {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
+      overflow: hidden;
     }
 
-    .filter-date-row .filter-field { flex: 1; }
+    .filter-date-row .filter-field { flex: 1; min-width: 0; }
 
     .filter-date-sep {
       font-size: 13px;
@@ -189,15 +191,17 @@
     }
 
     .filter-bar select, .filter-bar input {
-      padding: 8px 12px;
+      padding: 8px 8px;
       border: 1.5px solid var(--border);
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 13px;
       font-family: inherit;
       outline: none;
       background: #fafafa;
       transition: border-color 0.15s;
       width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
     .filter-bar select:focus, .filter-bar input:focus { border-color: var(--green); }
 
@@ -489,6 +493,12 @@
     function showDashboard() {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('filterFrom').value = `${yyyy}-${mm}-01`;
+      document.getElementById('filterTo').value = `${yyyy}-${mm}-${dd}`;
       loadReports();
     }
 
