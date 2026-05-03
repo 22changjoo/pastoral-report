@@ -149,9 +149,43 @@
       margin-bottom: 20px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
       display: flex;
+      flex-direction: column;
       gap: 10px;
-      flex-wrap: wrap;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 10px;
       align-items: center;
+    }
+
+    .filter-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .filter-field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-sub);
+      letter-spacing: 0.04em;
+    }
+
+    .filter-date-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .filter-date-row .filter-field { flex: 1; }
+
+    .filter-date-sep {
+      font-size: 13px;
+      color: var(--text-sub);
+      flex-shrink: 0;
+      padding-top: 18px;
     }
 
     .filter-bar select, .filter-bar input {
@@ -163,11 +197,18 @@
       outline: none;
       background: #fafafa;
       transition: border-color 0.15s;
+      width: 100%;
     }
     .filter-bar select:focus, .filter-bar input:focus { border-color: var(--green); }
 
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+    }
+
     .filter-btn {
-      padding: 8px 16px;
+      flex: 1;
+      padding: 10px 16px;
       background: var(--green);
       color: white;
       border: none;
@@ -179,7 +220,7 @@
     }
 
     .filter-reset {
-      padding: 8px 12px;
+      padding: 10px 16px;
       background: none;
       border: 1.5px solid var(--border);
       border-radius: 8px;
@@ -312,8 +353,6 @@
       .topbar-left h1 { font-size: 14px; }
       .user-badge { display: none; }
       .detail-grid { grid-template-columns: 1fr; }
-      .filter-bar { flex-direction: column; align-items: stretch; }
-      .filter-bar select, .filter-bar input, .filter-btn, .filter-reset { width: 100%; }
     }
   </style>
 </head>
@@ -374,18 +413,34 @@
 
       <!-- 필터 -->
       <div class="filter-bar">
-        <select id="filterChoJang">
-          <option value="">전체 초장</option>
-          <option value="1초장">1초장</option>
-          <option value="2/3초장">2/3초장</option>
-          <option value="4초장">4초장</option>
-          <option value="5초장">5초장</option>
-          <option value="6초장">6초장</option>
-        </select>
-        <input type="date" id="filterFrom" placeholder="시작일" />
-        <input type="date" id="filterTo" placeholder="종료일" />
-        <button class="filter-btn" onclick="applyFilter()">조회</button>
-        <button class="filter-reset" onclick="resetFilter()">초기화</button>
+        <div class="filter-row">
+          <div class="filter-field">
+            <label>초장</label>
+            <select id="filterChoJang">
+              <option value="">전체 초장</option>
+              <option value="1초장">1초장</option>
+              <option value="2/3초장">2/3초장</option>
+              <option value="4초장">4초장</option>
+              <option value="5초장">5초장</option>
+              <option value="6초장">6초장</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-date-row">
+          <div class="filter-field">
+            <label>시작일</label>
+            <input type="date" id="filterFrom" />
+          </div>
+          <span class="filter-date-sep">~</span>
+          <div class="filter-field">
+            <label>종료일</label>
+            <input type="date" id="filterTo" />
+          </div>
+        </div>
+        <div class="filter-actions">
+          <button class="filter-btn" onclick="applyFilter()">조회</button>
+          <button class="filter-reset" onclick="resetFilter()">초기화</button>
+        </div>
       </div>
 
       <!-- 보고서 목록 -->
