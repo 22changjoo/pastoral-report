@@ -2,104 +2,97 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>쉴물가 모임 보고서</title>
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#2E7D32" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="쉴물가" />
-  <link rel="apple-touch-icon" href="https://igodswill.org/wp-content/uploads/2025/01/logo02.png" />
-
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
-
   <style>
-    :root {
-      --green: #2E7D32;
-      --green-dark: #1B5E20;
-      --green-light: #E8F5E9;
-      --green-mid: #C8E6C9;
-      --red: #C62828;
-      --red-light: #FFEBEE;
-      --gray: #f5f5f5;
-      --border: #e0e0e0;
-      --text: #1a1a1a;
-      --text-sub: #666;
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-    }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html, body {
-      max-width: 100%;
-      overflow-x: hidden;
-      -webkit-tap-highlight-color: transparent;
-    }
-
     body {
-      font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+      font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
       background: #f0f4f0;
       min-height: 100vh;
-      padding-bottom: calc(24px + var(--safe-bottom));
+      padding: 24px 16px 48px;
+      width: 100%;
     }
 
-    /* ── 헤더 ── */
-    .header {
-      background: var(--green);
-      color: white;
-      padding: calc(16px + var(--safe-top)) 24px 20px;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .header img { height: 18px; width: auto; margin-bottom: 6px; display: inline-block; }
-    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-    .header p { font-size: 12px; opacity: 0.75; margin-top: 2px; }
-
-    /* ── 카드 ── */
-    .card {
-      background: white;
-      margin: 12px;
-      border-radius: 16px;
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
 
-    .card-section {
-      padding: 20px;
-      border-bottom: 1px solid #f5f5f5;
+    .header {
+      background: #2E7D32;
+      color: white;
+      border-radius: 12px 12px 0 0;
+      padding: 16px 32px 20px;
+      text-align: center;
     }
-    .card-section:last-child { border-bottom: none; }
 
-    .section-title {
-      font-size: 11px;
+    .header-logo {
+      margin-bottom: 8px;
+    }
+
+    .header-logo img {
+      height: 20px;
+      width: auto;
+      display: inline-block;
+    }
+
+    .header-text h1 {
+      font-family: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+      font-size: 35px;
       font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--green);
-      margin-bottom: 14px;
+      margin-bottom: 4px;
     }
 
-    /* ── 폼 요소 ── */
-    .form-group { margin-bottom: 16px; }
-    .form-group:last-child { margin-bottom: 0; }
+    .header-text p {
+      font-size: 13px;
+      opacity: 0.8;
+    }
 
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 480px) {
+      .header { padding: 12px 20px 16px; }
+      .header-text h1 { font-size: 23px; }
+      .header-logo img { height: 16px; }
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 0 0 12px 12px;
+      padding: 32px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .section-divider {
+      border: none;
+      border-top: 2px solid #E8F5E9;
+      margin: 24px 0 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
 
     label {
       display: block;
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 600;
-      color: var(--text);
+      color: #333;
       margin-bottom: 6px;
     }
 
-    label .req { color: #e53935; }
+    label .required {
+      color: #e53935;
+      margin-left: 2px;
+    }
 
     input[type="date"],
     input[type="text"],
@@ -107,378 +100,385 @@
     select,
     textarea {
       width: 100%;
-      padding: 11px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      font-size: 16px;
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
       font-family: inherit;
-      color: var(--text);
+      color: #333;
       background: #fafafa;
+      transition: border-color 0.2s, box-shadow 0.2s;
       outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      -webkit-appearance: none;
-      appearance: none;
     }
 
     input:focus, select:focus, textarea:focus {
-      border-color: var(--green);
-      box-shadow: 0 0 0 3px rgba(46,125,50,0.1);
+      border-color: #2E7D32;
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.12);
       background: white;
+    }
+
+    input.error, select.error, textarea.error {
+      border-color: #e53935;
     }
 
     textarea {
       resize: vertical;
-      min-height: 100px;
+      min-height: 90px;
       line-height: 1.6;
     }
 
-    .prayer-area {
-      border-color: #FFCDD2;
-      background: #FFF8F8;
-    }
-    .prayer-area:focus {
-      border-color: var(--red);
-      box-shadow: 0 0 0 3px rgba(198,40,40,0.08);
-    }
-
-    /* ── 칩 ── */
-    .chip-group {
+    .attendee-row {
       display: flex;
-      flex-wrap: wrap;
       gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
     }
 
-    .chip { cursor: pointer; }
-    .chip input[type="checkbox"] { display: none; }
-    .chip span {
-      display: inline-block;
-      padding: 8px 16px;
-      border: 1.5px solid var(--border);
-      border-radius: 20px;
-      font-size: 14px;
-      color: #555;
-      background: #fafafa;
-      transition: all 0.15s;
-      user-select: none;
-    }
-    .chip input:checked + span {
-      background: var(--green-light);
-      border-color: var(--green);
-      color: var(--green);
-      font-weight: 600;
-    }
+    .attendee-row input { flex: 1; margin-bottom: 0; }
 
-    /* ── 제출 버튼 ── */
-    .submit-btn {
-      width: calc(100% - 24px);
-      margin: 0 12px 12px;
-      padding: 16px;
-      background: var(--green);
-      color: white;
+    .btn-icon {
+      width: 34px;
+      height: 34px;
       border: none;
-      border-radius: 14px;
-      font-size: 17px;
-      font-weight: 700;
-      font-family: inherit;
+      border-radius: 6px;
       cursor: pointer;
-      letter-spacing: -0.01em;
-      transition: background 0.15s, transform 0.1s;
-      -webkit-appearance: none;
-    }
-    .submit-btn:active { transform: scale(0.98); background: var(--green-dark); }
-    .submit-btn:disabled { background: #81C784; cursor: not-allowed; }
-
-    /* ── 성공 화면 ── */
-    .success-screen {
-      display: none;
-      text-align: center;
-      padding: 60px 24px;
-    }
-
-    .success-icon {
-      width: 72px;
-      height: 72px;
-      background: var(--green-light);
-      border-radius: 50%;
+      font-size: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 36px;
+      flex-shrink: 0;
+      transition: background 0.15s;
     }
 
-    .success-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; color: var(--green-dark); }
-    .success-screen p { font-size: 14px; color: var(--text-sub); line-height: 1.7; margin-bottom: 28px; }
+    .btn-add { background: #E8F5E9; color: #2E7D32; }
+    .btn-add:hover { background: #C8E6C9; }
+    .btn-remove { background: #FFEBEE; color: #e53935; }
+    .btn-remove:hover { background: #FFCDD2; }
 
-    .btn-reset {
-      padding: 12px 28px;
-      background: var(--green);
+    .btn-add-wrap {
+      display: flex;
+      justify-content: flex-start;
+      margin-top: 6px;
+    }
+
+    .btn-add-text {
+      background: none;
+      border: 1.5px dashed #81C784;
+      color: #2E7D32;
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .btn-add-text:hover { background: #E8F5E9; }
+
+    .prayer-box {
+      border: 1.5px solid #FFCDD2;
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: #FFF8F8;
+      width: 100%;
+      min-height: 90px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #333;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      line-height: 1.6;
+    }
+
+    .prayer-box:focus {
+      border-color: #e53935;
+      box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1);
+      background: white;
+    }
+
+    .prayer-label { color: #C62828 !important; }
+
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: #2E7D32;
       color: white;
       border: none;
       border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
       cursor: pointer;
+      margin-top: 28px;
+      font-family: inherit;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.03em;
     }
 
-    /* ── 토스트 ── */
+    .submit-btn:hover { background: #1B5E20; }
+    .submit-btn:active { transform: scale(0.99); }
+    .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
+
     .toast {
-      position: fixed;
-      bottom: calc(24px + var(--safe-bottom));
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: #333;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 24px;
-      font-size: 14px;
-      font-weight: 500;
-      white-space: nowrap;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s, transform 0.2s;
-      z-index: 9999;
-      max-width: calc(100vw - 48px);
-      white-space: normal;
-      text-align: center;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .toast.error { background: #c62828; }
-
-    /* ── 힌트 ── */
-    .hint { font-size: 11px; color: #999; margin-top: 4px; }
-
-    /* ── 설치 배너 (iOS) ── */
-    .install-banner {
       display: none;
       position: fixed;
-      bottom: calc(16px + var(--safe-bottom));
-      left: 12px;
-      right: 12px;
-      background: white;
-      border-radius: 16px;
-      padding: 14px 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
       z-index: 1000;
-      align-items: center;
-      gap: 12px;
-    }
-    .install-banner.show { display: flex; }
-    .install-banner img { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; }
-    .install-banner-text { flex: 1; }
-    .install-banner-text strong { display: block; font-size: 14px; font-weight: 700; }
-    .install-banner-text span { font-size: 12px; color: var(--text-sub); }
-    .install-banner-close {
-      background: none; border: none; font-size: 20px; color: #999; cursor: pointer; padding: 4px; flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      max-width: 90vw;
+      text-align: center;
     }
 
-    @media (min-width: 600px) {
-      body { padding: 24px 0 48px; }
-      .card { max-width: 540px; margin: 12px auto; }
-      .submit-btn { max-width: 540px; display: block; margin: 0 auto 12px; width: 100%; padding: 16px; border-radius: 14px; }
+    .toast.success { background: #2E7D32; }
+    .toast.error { background: #c62828; }
+
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 48px 24px;
+    }
+
+    .success-screen .icon { font-size: 64px; margin-bottom: 16px; }
+    .success-screen h2 { color: #2E7D32; margin-bottom: 8px; }
+    .success-screen p { color: #666; font-size: 14px; margin-bottom: 24px; }
+    .success-screen button {
+      background: #2E7D32;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .form-row-fixed {
+      display: grid;
+      grid-template-columns: 0.7fr 1fr;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .form-row-fixed .form-group {
+      min-width: 0;
+    }
+
+    .form-row-fixed input {
+      min-width: 0;
+      max-width: 100%;
+      padding: 10px 8px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns: 1fr; }
+      .form-card { padding: 24px 20px; }
     }
   </style>
 </head>
 <body>
-
-  <div class="header">
-    <img src="https://igodswill.org/wp-content/uploads/2025/01/logo02.png" alt="높은뜻푸른교회" />
-    <h1>쉴물가 모임 보고서</h1>
-    <p>모임 후 보고서를 제출해 주세요</p>
-  </div>
-
-  <!-- 성공 화면 -->
-  <div class="card" id="successCard" style="display:none;">
-    <div class="success-screen" id="successScreen" style="display:block;">
-      <div class="success-icon">✅</div>
-      <h2>보고서가 제출되었습니다!</h2>
-      <p>담당 목사님께 알림 메일이<br>발송되었습니다. 수고하셨습니다!</p>
-      <button class="btn-reset" onclick="resetForm()">새 보고서 작성</button>
+  <div class="container">
+    <div class="header">
+      <div class="header-logo">
+        <img src="https://igodswill.org/wp-content/uploads/2025/01/logo02.png" alt="높은뜻푸른교회 로고" />
+      </div>
+      <div class="header-text">
+        <h1>쉴물가 모임 보고서</h1>
+        <p>쉴물가 모임 후 보고서를 제출해 주세요</p>
+      </div>
     </div>
-  </div>
 
-  <!-- 폼 -->
-  <form id="reportForm" novalidate>
+    <div class="form-card">
+      <!-- 성공 화면 -->
+      <div class="success-screen" id="successScreen">
+        <div class="icon">✅</div>
+        <h2>보고서가 제출되었습니다!</h2>
+        <p>담당 목사님께 알림 메일이 발송되었습니다.<br>수고하셨습니다 🙏</p>
+        <button onclick="resetForm()">새 보고서 작성</button>
+      </div>
 
-    <!-- 기본 정보 -->
-    <div class="card">
-      <div class="card-section">
-        <div class="section-title">기본 정보</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="choJang">초장 <span class="req">*</span></label>
-            <select id="choJang" required>
-              <option value="">선택</option>
-              <option value="1초장">1초장</option>
-              <option value="2/3초장">2/3초장</option>
-              <option value="4초장">4초장</option>
-              <option value="5초장">5초장</option>
-              <option value="6초장">6초장</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="meetingDate">모임 날짜 <span class="req">*</span></label>
-            <input type="date" id="meetingDate" required />
-          </div>
-        </div>
+      <!-- 폼 -->
+      <form id="reportForm">
+
         <div class="form-group">
-          <label for="shilMulGa">쉴물가 / 목자 이름 <span class="req">*</span></label>
+          <label for="choJang">초장 <span class="required">*</span></label>
+          <select id="choJang" required>
+            <option value="">선택하세요</option>
+            <option value="1초장">1초장</option>
+            <option value="2초장">2초장</option>
+            <option value="3초장">3초장</option>
+            <option value="4초장">4초장</option>
+            <option value="5초장">5초장</option>
+            <option value="6초장">6초장</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="shilMulGa">쉴물가 <span class="required">*</span></label>
           <input type="text" id="shilMulGa" placeholder="예: ○○○ 쉴물가" required />
         </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label for="meetingPlace">모임 장소 <span class="req">*</span></label>
-          <input type="text" id="meetingPlace" placeholder="예: 0-0반 교실, 양덕관..." required />
-        </div>
-      </div>
-    </div>
 
-    <!-- 참석 -->
-    <div class="card">
-      <div class="card-section">
-        <div class="section-title">참석 현황</div>
-        <div class="form-group">
-          <label for="attendees">참석자 <span class="req">*</span></label>
-          <textarea id="attendees" placeholder="예) 홍길동, 김철수, 이영희" required></textarea>
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label for="absentees">불참자 및 사유</label>
-          <textarea id="absentees" placeholder="예) 김○○ - 출장&#10;이○○ - 건강 문제&#10;(없으면 비워두세요)"></textarea>
-        </div>
-      </div>
-    </div>
+        <div class="form-row-fixed">
+          <div class="form-group">
+            <label for="meetingDate">모임 날짜 <span class="required">*</span></label>
+            <input type="date" id="meetingDate" required />
+          </div>
 
-    <!-- 모임 내용 -->
-    <div class="card">
-      <div class="card-section">
-        <div class="section-title">모임 내용</div>
-        <div class="form-group">
-          <label>내용 선택 <span class="req">*</span></label>
-          <p class="hint" style="margin-bottom:10px;">중복 선택 가능합니다</p>
-          <div class="chip-group" id="contentGroup">
-            <label class="chip"><input type="checkbox" name="meetingContent" value="말씀나눔"><span>📖 말씀나눔</span></label>
-            <label class="chip"><input type="checkbox" name="meetingContent" value="기도제목나눔"><span>🙏 기도제목나눔</span></label>
-            <label class="chip"><input type="checkbox" name="meetingContent" value="교제"><span>💬 교제</span></label>
-            <label class="chip"><input type="checkbox" name="meetingContent" value="식사"><span>🍽️ 식사</span></label>
-            <label class="chip"><input type="checkbox" name="meetingContent" value="기타"><span>✏️ 기타</span></label>
+          <div class="form-group">
+            <label for="meetingPlace">장소 <span class="required">*</span></label>
+            <input type="text" id="meetingPlace" placeholder="예: ○○○ 집, 교회 소그룹실" required />
           </div>
         </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label for="evaluation">오늘 모임은 어땠나요?</label>
-          <textarea id="evaluation" placeholder="모임 후 느낀 점이나 짧은 소감을 편하게 적어주세요&#10;(없으면 비워두세요)"></textarea>
+
+        <hr class="section-divider" />
+
+        <div class="form-group">
+          <label>참석자 <span class="required">*</span></label>
+          <div id="attendeeList">
+            <div class="attendee-row">
+              <input type="text" placeholder="이름" class="attendee-input" required />
+              <button type="button" class="btn-icon btn-remove" onclick="removeAttendee(this)" style="display:none">×</button>
+            </div>
+          </div>
+          <div class="btn-add-wrap">
+            <button type="button" class="btn-add-text" onclick="addAttendee()">+ 참석자 추가</button>
+          </div>
+          <div class="hint">참석 인원수는 자동으로 계산됩니다</div>
         </div>
-      </div>
-    </div>
 
-    <!-- 기도제목 -->
-    <div class="card">
-      <div class="card-section">
-        <div class="section-title" style="color:#C62828;">🙏 기도제목</div>
-        <div class="form-group" style="margin-bottom:0">
-          <textarea class="prayer-area" id="prayerRequest" placeholder="기도제목을 적어주세요&#10;(없으면 비워두세요)"></textarea>
+        <hr class="section-divider" />
+
+        <div class="form-group">
+          <label for="absentees">불참인원 및 사유</label>
+          <textarea id="absentees" placeholder="예) 김○○ - 출장&#10;이○○ - 건강 문제&#10;(없으면 비워두세요)"></textarea>
         </div>
-      </div>
+
+        <hr class="section-divider" />
+
+        <div class="form-group">
+          <label for="content">모임 내용 <span class="required">*</span></label>
+          <textarea id="content" style="min-height:120px" placeholder="나눈 말씀, 주요 내용, 특이사항 등을 기록해 주세요" required></textarea>
+        </div>
+
+        <hr class="section-divider" />
+
+        <div class="form-group">
+          <label for="evaluation">모임 평가 및 건의사항</label>
+          <textarea id="evaluation" style="min-height:100px" placeholder="모임에 대한 평가나 건의사항을 자유롭게 적어주세요&#10;(없으면 비워두세요)"></textarea>
+        </div>
+
+        <hr class="section-divider" />
+
+        <div class="form-group">
+          <label for="prayerRequest" class="prayer-label">🙏 기도제목</label>
+          <textarea class="prayer-box" id="prayerRequest" placeholder="기도제목을 적어주세요&#10;(없으면 비워두세요)"></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">보고서 제출하기</button>
+      </form>
     </div>
-
-    <button type="submit" class="submit-btn" id="submitBtn">보고서 제출하기</button>
-
-  </form>
-
-  <!-- iOS 설치 배너 -->
-  <div class="install-banner" id="installBanner">
-    <img src="https://igodswill.org/wp-content/uploads/2025/01/logo02.png" alt="아이콘" />
-    <div class="install-banner-text">
-      <strong>홈 화면에 추가하기</strong>
-      <span>앱처럼 사용하려면 공유 → 홈 화면에 추가</span>
-    </div>
-    <button class="install-banner-close" onclick="closeBanner()">✕</button>
   </div>
 
+  <!-- 토스트 알림 -->
   <div class="toast" id="toast"></div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxVT_8GpJ0DB8T0QgFJUWlHBcNF1vRQtToVrWfTXpOjijWBMOQ88ctr5XzQ7QgjtttPoQ/exec';
+    // 입력 필드 포커스 시 키보드에 가리지 않도록 자동 스크롤
+    document.addEventListener('focusin', function(e) {
+      const el = e.target;
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+        setTimeout(function() {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        }, 350);
+      }
+    });
 
-    // 오늘 날짜 기본값
+    // 오늘 날짜로 기본 설정
     document.getElementById('meetingDate').value = new Date().toISOString().split('T')[0];
 
-    // PWA Service Worker 등록
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/pastoral-report/sw.js')
-          .catch(err => console.log('SW 등록 실패:', err));
+    function addAttendee() {
+      const list = document.getElementById('attendeeList');
+      const row = document.createElement('div');
+      row.className = 'attendee-row';
+      row.innerHTML = `
+        <input type="text" placeholder="이름" class="attendee-input" />
+        <button type="button" class="btn-icon btn-remove" onclick="removeAttendee(this)">×</button>
+      `;
+      list.appendChild(row);
+      updateRemoveButtons();
+      row.querySelector('input').focus();
+    }
+
+    function removeAttendee(btn) {
+      btn.parentElement.remove();
+      updateRemoveButtons();
+    }
+
+    function updateRemoveButtons() {
+      const rows = document.querySelectorAll('.attendee-row');
+      rows.forEach((row, i) => {
+        const btn = row.querySelector('.btn-remove');
+        btn.style.display = rows.length > 1 ? 'flex' : 'none';
       });
     }
 
-    // iOS 홈화면 추가 배너
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isStandalone = window.navigator.standalone;
-    const bannerDismissed = localStorage.getItem('installBannerDismissed');
-
-    if (isIOS && !isStandalone && !bannerDismissed) {
-      setTimeout(() => {
-        document.getElementById('installBanner').classList.add('show');
-      }, 3000);
+    function getAttendees() {
+      const inputs = document.querySelectorAll('.attendee-input');
+      return Array.from(inputs).map(i => i.value.trim()).filter(v => v !== '');
     }
 
-    function closeBanner() {
-      document.getElementById('installBanner').classList.remove('show');
-      localStorage.setItem('installBannerDismissed', '1');
-    }
-
-    // Android Chrome 설치 프롬프트
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault();
-      deferredPrompt = e;
-      // Android는 자동으로 배너가 뜨므로 별도 처리 불필요
-    });
-
-    // 토스트
     function showToast(msg, type = 'success') {
       const toast = document.getElementById('toast');
       toast.textContent = msg;
-      toast.className = `toast ${type} show`;
-      setTimeout(() => toast.className = 'toast', 3000);
+      toast.className = `toast ${type}`;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3500);
     }
 
-    // 폼 리셋
     function resetForm() {
       document.getElementById('reportForm').reset();
+      document.getElementById('attendeeList').innerHTML = `
+        <div class="attendee-row">
+          <input type="text" placeholder="이름" class="attendee-input" required />
+          <button type="button" class="btn-icon btn-remove" onclick="removeAttendee(this)" style="display:none">×</button>
+        </div>`;
       document.getElementById('meetingDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('successCard').style.display = 'none';
+      document.getElementById('successScreen').style.display = 'none';
       document.getElementById('reportForm').style.display = 'block';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // 폼 제출
-    document.getElementById('reportForm').addEventListener('submit', async function(e) {
+    document.getElementById('reportForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
-      // 유효성 검사
-      const choJang = document.getElementById('choJang').value;
-      const shilMulGa = document.getElementById('shilMulGa').value.trim();
-      const meetingDate = document.getElementById('meetingDate').value;
-      const meetingPlace = document.getElementById('meetingPlace').value.trim();
-      const attendees = document.getElementById('attendees').value.trim();
-      const checkedContents = Array.from(document.querySelectorAll('input[name="meetingContent"]:checked')).map(cb => cb.value);
-
-      if (!choJang) return showToast('초장을 선택해 주세요.', 'error');
-      if (!shilMulGa) return showToast('쉴물가 / 목자 이름을 입력해 주세요.', 'error');
-      if (!meetingDate) return showToast('모임 날짜를 선택해 주세요.', 'error');
-      if (!meetingPlace) return showToast('모임 장소를 입력해 주세요.', 'error');
-      if (!attendees) return showToast('참석자를 입력해 주세요.', 'error');
-      if (checkedContents.length === 0) return showToast('모임 내용을 하나 이상 선택해 주세요.', 'error');
+      const attendees = getAttendees();
+      if (attendees.length === 0) {
+        showToast('참석자를 한 명 이상 입력해 주세요.', 'error');
+        return;
+      }
 
       const formData = {
-        action: 'submit',
-        meetingDate,
-        choJang,
-        shilMulGa,
-        meetingPlace,
-        attendees,
+        meetingDate: document.getElementById('meetingDate').value,
+        choJang: document.getElementById('choJang').value,
+        shilMulGa: document.getElementById('shilMulGa').value.trim(),
+        meetingPlace: document.getElementById('meetingPlace').value.trim(),
+        attendeeCount: attendees.length,
+        attendees: attendees.join(', '),
         absentees: document.getElementById('absentees').value.trim(),
-        content: checkedContents.join(', '),
+        content: document.getElementById('content').value.trim(),
         evaluation: document.getElementById('evaluation').value.trim(),
         prayerRequest: document.getElementById('prayerRequest').value.trim(),
       };
@@ -487,28 +487,23 @@
       btn.disabled = true;
       btn.textContent = '제출 중...';
 
-      try {
-        const res = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify(formData),
-        });
-        const result = await res.json();
-
-        btn.disabled = false;
-        btn.textContent = '보고서 제출하기';
-
-        if (result.success) {
-          document.getElementById('reportForm').style.display = 'none';
-          document.getElementById('successCard').style.display = 'block';
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          showToast('오류: ' + result.message, 'error');
-        }
-      } catch (err) {
-        btn.disabled = false;
-        btn.textContent = '보고서 제출하기';
-        showToast('네트워크 오류가 발생했습니다.', 'error');
-      }
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.textContent = '보고서 제출하기';
+          if (result.success) {
+            document.getElementById('reportForm').style.display = 'none';
+            document.getElementById('successScreen').style.display = 'block';
+          } else {
+            showToast('오류: ' + result.message, 'error');
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.textContent = '보고서 제출하기';
+          showToast('제출 실패: ' + err.message, 'error');
+        })
+        .submitReport(formData);
     });
   </script>
 </body>

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/cjminim1/Library/CloudStorage/OneDrive-높은뜻푸른교회 -type f -name *.svg)",
+      "Bash(find /Users/cjminim1/Library/CloudStorage/OneDrive-높은뜻푸른교회 -maxdepth 5 \\\\\\(-iname *.png -o -iname *.jpg -o -iname *.jpeg \\\\\\) -type f)",
+      "Bash(find /Users/cjminim1/Library/CloudStorage/OneDrive-높은뜻푸른교회 -type f \\\\\\(-iname *.png -o -iname *.jpg -o -iname *.jpeg -o -iname *.svg \\\\\\))",
+      "Bash(grep -i \"\\\\.svg$\")",
+      "WebFetch(domain:www.igodswill.org)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npx --version)",
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/homebrew/**)",
+      "Bash(ruby --version)"
+    ]
+  }
+}
