@@ -9,12 +9,12 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://igodswill.org/wp-content/uploads/2025/01/logo02.png",
+      "src": "icon.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://igodswill.org/wp-content/uploads/2025/01/logo02.png",
+      "src": "icon.png",
       "sizes": "512x512",
       "type": "image/png"
     }
