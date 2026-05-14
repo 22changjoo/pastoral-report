@@ -340,19 +340,19 @@
         <div class="form-group">
           <label>모임 내용 <span class="required">*</span></label>
           <div class="chip-group" id="contentChips">
-            <label class="chip-label" onclick="toggleChip(this)">
+            <label class="chip-label" onclick="toggleChip(event, this)">
               <input type="checkbox" value="말씀나눔" /> 말씀나눔
             </label>
-            <label class="chip-label" onclick="toggleChip(this)">
+            <label class="chip-label" onclick="toggleChip(event, this)">
               <input type="checkbox" value="기도제목나눔" /> 기도제목나눔
             </label>
-            <label class="chip-label" onclick="toggleChip(this)">
+            <label class="chip-label" onclick="toggleChip(event, this)">
               <input type="checkbox" value="교제" /> 교제
             </label>
-            <label class="chip-label" onclick="toggleChip(this)">
+            <label class="chip-label" onclick="toggleChip(event, this)">
               <input type="checkbox" value="식사" /> 식사
             </label>
-            <label class="chip-label" onclick="toggleChip(this)">
+            <label class="chip-label" onclick="toggleChip(event, this)">
               <input type="checkbox" value="기타" /> 기타
             </label>
           </div>
@@ -397,7 +397,8 @@
     document.getElementById('meetingDate').value = new Date().toISOString().split('T')[0];
 
     // 칩 토글
-    function toggleChip(label) {
+    function toggleChip(e, label) {
+      e.preventDefault();
       label.classList.toggle('selected');
       const cb = label.querySelector('input[type="checkbox"]');
       cb.checked = label.classList.contains('selected');
