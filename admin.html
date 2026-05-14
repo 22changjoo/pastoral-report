@@ -151,18 +151,19 @@
     .filter-bar {
       background: white;
       border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 20px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
       display: flex;
-      flex-direction: column;
-      gap: 10px;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
     }
 
     .filter-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
+      flex: 1;
+      min-width: 120px;
     }
 
     .filter-field {
@@ -182,11 +183,18 @@
 
     .filter-date-row {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      align-items: flex-end;
       gap: 8px;
+      flex: 2;
+      min-width: 240px;
     }
 
-    .filter-date-sep { display: none; }
+    .filter-date-sep { 
+      padding-bottom: 10px;
+      color: var(--text-sub);
+      font-weight: 500;
+    }
 
     .filter-bar select, .filter-bar input {
       padding: 10px 12px;
@@ -217,6 +225,8 @@
     .filter-actions {
       display: flex;
       gap: 8px;
+      flex: 1;
+      min-width: 140px;
     }
 
     .filter-btn {
@@ -403,24 +413,14 @@
       <!-- 통계 -->
       <div class="stats-grid" id="statsGrid">
         <div class="stat-card">
-          <div class="stat-label">전체 보고서</div>
-          <div class="stat-value" id="statTotal">—</div>
-          <div class="stat-sub">누적</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">이번 달</div>
+          <div class="stat-label">📅 이번 달 보고서</div>
           <div class="stat-value" id="statThisMonth">—</div>
           <div class="stat-sub" id="statMonthLabel">—</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">이번 주</div>
+          <div class="stat-label">🔥 이번 주 보고서</div>
           <div class="stat-value" id="statThisWeek">—</div>
           <div class="stat-sub">최근 7일</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">초장 수</div>
-          <div class="stat-value" id="statChoJang">—</div>
-          <div class="stat-sub">보고 초장</div>
         </div>
       </div>
 
@@ -548,11 +548,9 @@
       const weekReports = reports.filter(r => new Date(r.submitDate) >= weekAgo);
       const choJangSet = new Set(reports.map(r => r.choJang));
 
-      document.getElementById('statTotal').textContent = reports.length;
       document.getElementById('statThisMonth').textContent = monthReports.length;
       document.getElementById('statMonthLabel').textContent = `${thisMonth + 1}월`;
       document.getElementById('statThisWeek').textContent = weekReports.length;
-      document.getElementById('statChoJang').textContent = choJangSet.size;
     }
 
     // ── 필터 ──
