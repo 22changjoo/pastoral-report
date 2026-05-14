@@ -624,7 +624,7 @@
               <span class="chojang-badge" style="${getChojangColor(r.choJang)}">${r.choJang}</span>
               <div>
                 <div class="report-title">${r.shilMulGa}</div>
-                <div class="report-meta">${formatMeetingDate(r.meetingDate)} · ${r.meetingPlace}</div>
+                <div class="report-meta">${formatMeetingDate(r.meetingDate)} · ${(r.meetingPlace || '').replace(/(\d+)의(\d+)/g, '$1-$2')}</div>
               </div>
             </div>
             <div class="report-card-right">
