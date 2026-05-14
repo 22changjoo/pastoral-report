@@ -463,23 +463,28 @@
       btn.disabled = true;
       btn.textContent = '제출 중...';
 
-      google.script.run
-        .withSuccessHandler(function(result) {
-          btn.disabled = false;
-          btn.textContent = '보고서 제출하기';
-          if (result.success) {
-            document.getElementById('reportForm').style.display = 'none';
-            document.getElementById('successScreen').style.display = 'block';
-          } else {
-            showToast('오류: ' + result.message, 'error');
-          }
-        })
-        .withFailureHandler(function(err) {
-          btn.disabled = false;
-          btn.textContent = '보고서 제출하기';
-          showToast('제출 실패: ' + err.message, 'error');
-        })
-        .submitReport(formData);
+      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQjw9EIe9nbpmBXNl67vX03nFXyBVo4TYevBAsXNagpduVIr4BRN3_jANcj4DbfYqfyw/exec';
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // CORS 에러 회피를 위해 필수
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => {
+        // no-cors 모드일 경우 응답(response)을 읽을 수 없으므로 항상 성공으로 간주
+        btn.disabled = false;
+        btn.textContent = '보고서 제출하기';
+        document.getElementById('reportForm').style.display = 'none';
+        document.getElementById('successScreen').style.display = 'block';
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.textContent = '보고서 제출하기';
+        showToast('제출 실패: ' + err.message, 'error');
+      });
     });
   </script>
 </body>
