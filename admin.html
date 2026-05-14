@@ -584,6 +584,27 @@
       return 'background: #ECEFF1; color: #455A64;'; // 회색
     }
 
+    function formatMeetingDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}.${mm}.${dd}.(${days[d.getDay()]})`;
+    }
+
+    function formatSimpleDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return String(dateStr).substring(0, 10);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}.${mm}.${dd}`;
+    }
+
     function renderReports(reports) {
       document.getElementById('reportsCount').textContent = `총 ${reports.length}건`;
       const list = document.getElementById('reportsList');
@@ -603,11 +624,11 @@
               <span class="chojang-badge" style="${getChojangColor(r.choJang)}">${r.choJang}</span>
               <div>
                 <div class="report-title">${r.shilMulGa}</div>
-                <div class="report-meta">모임: ${r.meetingDate} · ${r.meetingPlace}</div>
+                <div class="report-meta">${formatMeetingDate(r.meetingDate)} · ${r.meetingPlace}</div>
               </div>
             </div>
             <div class="report-card-right">
-              <span class="report-date">${r.submitDate.substring(0, 10)}</span>
+              <span class="report-date">${formatSimpleDate(r.submitDate)}</span>
               <span class="expand-arrow">▼</span>
             </div>
           </div>
