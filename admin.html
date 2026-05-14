@@ -290,8 +290,6 @@
       border-radius: 8px;
       font-size: 12px;
       font-weight: 700;
-      background: var(--green-light);
-      color: var(--green-dark);
     }
 
     .report-title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -575,6 +573,17 @@
     }
 
     // ── 렌더링 ──
+    function getChojangColor(choJang) {
+      switch(choJang) {
+        case '1초장': return 'background: #E3F2FD; color: #1565C0;'; // 파랑
+        case '2/3초장': return 'background: #F3E5F5; color: #7B1FA2;'; // 보라
+        case '4초장': return 'background: #FFF3E0; color: #E65100;'; // 주황
+        case '5초장': return 'background: #E8F5E9; color: #2E7D32;'; // 초록
+        case '6초장': return 'background: #FFEBEE; color: #C62828;'; // 빨강
+        default: return 'background: #ECEFF1; color: #455A64;'; // 회색
+      }
+    }
+
     function renderReports(reports) {
       document.getElementById('reportsCount').textContent = `총 ${reports.length}건`;
       const list = document.getElementById('reportsList');
@@ -591,7 +600,7 @@
         <div class="report-card" id="card-${i}">
           <div class="report-card-header" onclick="toggleCard(${i})">
             <div class="report-card-left">
-              <span class="chojang-badge">${r.choJang}</span>
+              <span class="chojang-badge" style="${getChojangColor(r.choJang)}">${r.choJang}</span>
               <div>
                 <div class="report-title">${r.shilMulGa}</div>
                 <div class="report-meta">모임: ${r.meetingDate} · ${r.meetingPlace}</div>
