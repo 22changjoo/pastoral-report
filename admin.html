@@ -586,8 +586,16 @@
 
     function formatMeetingDate(dateStr) {
       if (!dateStr) return '';
+      // "YYYY-MM-DD" 형식을 로컬 날짜로 파싱 (UTC 오프셋 오류 방지)
+      const match = String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) {
+        const [, yyyy, mm, dd] = match;
+        const d = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        return `${yyyy}.${mm}.${dd}.(${days[d.getDay()]})`;
+      }
       const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
+      if (isNaN(d.getTime())) return String(dateStr);
       const days = ['일', '월', '화', '수', '목', '금', '토'];
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -597,6 +605,9 @@
 
     function formatSimpleDate(dateStr) {
       if (!dateStr) return '';
+      // "YYYY-MM-DD HH:mm:ss" 또는 "YYYY-MM-DD" 에서 날짜 부분만 추출
+      const match = String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) return `${match[1]}.${match[2]}.${match[3]}`;
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return String(dateStr).substring(0, 10);
       const yyyy = d.getFullYear();
