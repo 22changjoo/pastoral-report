@@ -79,11 +79,11 @@ function doPost(e) {
  */
 function cellToDateString(val) {
   if (!val) return '';
-  if (val instanceof Date) {
+  // instanceof Date가 Apps Script에서 실패하는 경우를 대비해 try/catch 사용
+  try {
     return Utilities.formatDate(val, "Asia/Seoul", "yyyy-MM-dd");
-  }
+  } catch(e) {}
   const s = String(val);
-  // "yyyy-MM-dd HH:mm:ss" 또는 "yyyy-MM-dd" 형식에서 날짜 부분만 추출
   const m = s.match(/(\d{4}-\d{2}-\d{2})/);
   return m ? m[1] : s;
 }
