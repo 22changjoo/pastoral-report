@@ -523,7 +523,7 @@
         if (data.success) {
           allReports = data.reports;
           renderStats(allReports);
-          renderReports(allReports);
+          applyFilter();
         } else {
           document.getElementById('reportsList').innerHTML = '<div class="empty">데이터를 불러올 수 없습니다.</div>';
         }
@@ -559,8 +559,18 @@
 
       let filtered = allReports;
       if (choJang) filtered = filtered.filter(r => r.choJang === choJang);
-      if (from) filtered = filtered.filter(r => r.meetingDate >= from);
-      if (to) filtered = filtered.filter(r => r.meetingDate <= to);
+      if (from || to) {
+        filtered = filtered.filter(r => {
+          const dateStr = (r.meetingDate || '').trim();
+          if (!dateStr) return false;
+          const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (!m) return false;
+          const normalized = `${m[1]}-${m[2]}-${m[3]}`;
+          if (from && normalized < from) return false;
+          if (to && normalized > to) return false;
+          return true;
+        });
+      }
 
       renderReports(filtered);
     }
