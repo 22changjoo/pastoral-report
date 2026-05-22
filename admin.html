@@ -574,20 +574,11 @@
       const from = document.getElementById('filterFrom').value;
       const to = document.getElementById('filterTo').value;
 
-      // 디버그: 콘솔에서 실제 데이터 확인
-      console.log('[필터] choJang:', choJang, '/ from:', from, '/ to:', to);
-      console.log('[필터] 전체 보고서 수:', allReports.length);
-      if (allReports.length > 0) {
-        console.log('[필터] 첫 보고서 meetingDate 원본값:', JSON.stringify(allReports[0].meetingDate));
-        console.log('[필터] 샘플 5개 meetingDate:', allReports.slice(0, 5).map(r => r.meetingDate));
-      }
-
       let filtered = allReports;
       if (choJang) filtered = filtered.filter(r => r.choJang === choJang);
       if (from || to) {
         const fromDate = from ? parseDateLocal(from) : null;
         const toDate = to ? parseDateLocal(to) : null;
-        console.log('[필터] fromDate:', fromDate, '/ toDate:', toDate);
         filtered = filtered.filter(r => {
           const d = parseDateLocal(r.meetingDate);
           if (!d) return false;
@@ -597,7 +588,6 @@
         });
       }
 
-      console.log('[필터] 결과 보고서 수:', filtered.length);
       renderReports(filtered);
     }
 
@@ -608,11 +598,14 @@
       renderReports(allReports);
     }
 
-    // GMT+0900 같은 날짜 원시 문자열이 장소 필드에 들어온 경우 걸러냄
+    // 장소 문자열 정제 및 교실 자동 추가
     function sanitizePlace(str) {
       if (!str) return '';
       if (/GMT[+-]\d{4}/.test(str)) return '';
-      return str.replace(/(\d+)\s*의\s*(\d+)/g, '$1-$2');
+      let place = str.replace(/(\d+)\s*의\s*(\d+)/g, '$1-$2').trim();
+      // "1-7", "2-3" 처럼 숫자-숫자만 있으면 "교실" 추가
+      if (/^\d+-\d+$/.test(place)) place += ' 교실';
+      return place;
     }
 
     // ── 렌더링 ──
