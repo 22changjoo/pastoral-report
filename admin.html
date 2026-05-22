@@ -608,6 +608,13 @@
       renderReports(allReports);
     }
 
+    // GMT+0900 같은 날짜 원시 문자열이 장소 필드에 들어온 경우 걸러냄
+    function sanitizePlace(str) {
+      if (!str) return '';
+      if (/GMT[+-]\d{4}/.test(str)) return '';
+      return str.replace(/(\d+)\s*의\s*(\d+)/g, '$1-$2');
+    }
+
     // ── 렌더링 ──
     function getChojangColor(choJang) {
       if (!choJang) return 'background: #ECEFF1; color: #455A64;';
@@ -671,7 +678,7 @@
               <span class="chojang-badge" style="${getChojangColor(r.choJang)}">${r.choJang}</span>
               <div>
                 <div class="report-title">${r.shilMulGa}</div>
-                <div class="report-meta">${formatMeetingDate(r.meetingDate)} · ${(r.meetingPlace || '').replace(/(\d+)\s*의\s*(\d+)/g, '$1-$2')}</div>
+                <div class="report-meta">${formatMeetingDate(r.meetingDate)} · ${sanitizePlace(r.meetingPlace)}</div>
               </div>
             </div>
             <div class="report-card-right">
