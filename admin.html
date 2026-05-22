@@ -565,11 +565,20 @@
       const from = document.getElementById('filterFrom').value;
       const to = document.getElementById('filterTo').value;
 
+      // 디버그: 콘솔에서 실제 데이터 확인
+      console.log('[필터] choJang:', choJang, '/ from:', from, '/ to:', to);
+      console.log('[필터] 전체 보고서 수:', allReports.length);
+      if (allReports.length > 0) {
+        console.log('[필터] 첫 보고서 meetingDate 원본값:', JSON.stringify(allReports[0].meetingDate));
+        console.log('[필터] 샘플 5개 meetingDate:', allReports.slice(0, 5).map(r => r.meetingDate));
+      }
+
       let filtered = allReports;
       if (choJang) filtered = filtered.filter(r => r.choJang === choJang);
       if (from || to) {
         const fromDate = from ? parseDateLocal(from) : null;
         const toDate = to ? parseDateLocal(to) : null;
+        console.log('[필터] fromDate:', fromDate, '/ toDate:', toDate);
         filtered = filtered.filter(r => {
           const d = parseDateLocal(r.meetingDate);
           if (!d) return false;
@@ -579,6 +588,7 @@
         });
       }
 
+      console.log('[필터] 결과 보고서 수:', filtered.length);
       renderReports(filtered);
     }
 
