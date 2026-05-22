@@ -551,6 +551,14 @@
       document.getElementById('statThisWeek').textContent = weekReports.length;
     }
 
+    // ── 날짜 문자열을 로컬 Date 객체로 파싱 (형식 무관) ──
+    function parseDateLocal(str) {
+      if (!str) return null;
+      const m = String(str).match(/(\d{4})[^\d](\d{1,2})[^\d](\d{1,2})/);
+      if (!m) return null;
+      return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+    }
+
     // ── 필터 ──
     function applyFilter() {
       const choJang = document.getElementById('filterChoJang').value;
@@ -560,14 +568,13 @@
       let filtered = allReports;
       if (choJang) filtered = filtered.filter(r => r.choJang === choJang);
       if (from || to) {
+        const fromDate = from ? parseDateLocal(from) : null;
+        const toDate = to ? parseDateLocal(to) : null;
         filtered = filtered.filter(r => {
-          const dateStr = (r.meetingDate || '').trim();
-          if (!dateStr) return false;
-          const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
-          if (!m) return false;
-          const normalized = `${m[1]}-${m[2]}-${m[3]}`;
-          if (from && normalized < from) return false;
-          if (to && normalized > to) return false;
+          const d = parseDateLocal(r.meetingDate);
+          if (!d) return false;
+          if (fromDate && d < fromDate) return false;
+          if (toDate && d > toDate) return false;
           return true;
         });
       }
