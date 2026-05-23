@@ -661,8 +661,12 @@
         return;
       }
 
-      // 최신순 정렬
-      const sorted = [...reports].sort((a, b) => b.submitDate.localeCompare(a.submitDate));
+      // 최신순 정렬 (제출일시 기준, Safari 호환성을 위해 '-'를 '/'로 치환)
+      const sorted = [...reports].sort((a, b) => {
+        const timeA = new Date(String(a.submitDate).replace(/-/g, '/')).getTime() || 0;
+        const timeB = new Date(String(b.submitDate).replace(/-/g, '/')).getTime() || 0;
+        return timeB - timeA;
+      });
 
       list.innerHTML = sorted.map((r, i) => `
         <div class="report-card" id="card-${i}">
