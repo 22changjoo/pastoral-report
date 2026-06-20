@@ -114,6 +114,11 @@ function submitReport(formData) {
     // 이메일 알림 발송
     sendEmailNotification(formData, now);
 
+    // 5초장: AI 분석 + Notion 심방 기록 저장
+    if (formData.choJang === "5초장") {
+      processChoJang5Report(formData);
+    }
+
     return { success: true, message: "보고서가 성공적으로 제출되었습니다." };
   } catch (e) {
     console.error("submitReport 오류:", e);
@@ -241,4 +246,137 @@ function initializeSpreadsheet() {
   }
 
   Logger.log("초기화 완료! 1~6초장 탭이 생성되었습니다.");
+}
+
+// ============================================================
+// 5초장 자동화: Claude AI 분석 + Notion 심방 기록
+// Script Properties에 CLAUDE_API_KEY, NOTION_API_KEY 설정 필요
+// ============================================================
+
+const NOTION_DB_ID = "378b5584-3f1e-4c61-8333-db18ee1f1776";
+
+/**
+ * 5초장 보고서 제출 시 AI 분석 후 Notion에 저장
+ */
+function processChoJang5Report(formData) {
+  try {
+    const analysis = analyzeWithClaude(
+      formData.content || "",
+      formData.prayerRequest || "",
+      formData.shilMulGa || "",
+      formData.attendees || ""
+    );
+    const notionPageId = saveToNotion({
+      shilMulGa: formData.shilMulGa || "",
+      meetingDate: formData.meetingDate || "",
+      meetingPlace: formData.meetingPlace || "",
+      summary: analysis.summary,
+      urgentPrayer: analysis.urgentPrayer,
+      followUp: analysis.followUp,
+    });
+    console.log("Notion 심방 기록 저장 완료 - 페이지 ID:", notionPageId);
+  } catch (err) {
+    // 자동화 실패가 보고서 제출 자체를 막지 않도록 에러만 로깅
+    console.error("5초장 자동화 오류:", err.message);
+  }
+}
+
+/**
+ * Claude API로 모임 내용 분석
+ */
+function analyzeWithClaude(content, prayerRequest, shilMulGa, attendees) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty("CLAUDE_API_KEY");
+  if (!apiKey) throw new Error("CLAUDE_API_KEY가 Script Properties에 설정되지 않았습니다.");
+
+  const prompt = `당신은 교회 목자 모임 보고서를 분석하는 전문가입니다.
+
+쉴물가명: ${shilMulGa}
+참석인원: ${attendees}
+모임 내용: ${content}
+기도제목: ${prayerRequest}
+
+다음 세 가지를 JSON으로 답해주세요:
+1. summary: 모임 내용 3~4문장 요약 (핵심 나눔, 분위기, 결정사항 포함)
+2. urgentPrayer: 기도제목에서 질병·경제 위기·가정 위기 등 긴급한 상황만 추출. 없으면 빈 문자열.
+3. followUp: 목사의 돌봄이 필요한 성도나 상황에 대한 구체적 후속조치 제안. 없으면 빈 문자열.
+
+반드시 아래 JSON 형식으로만 응답하세요 (설명 없이):
+{"summary":"...","urgentPrayer":"...","followUp":"..."}`;
+
+  const response = UrlFetchApp.fetch("https://api.anthropic.com/v1/messages", {
+    method: "post",
+    headers: {
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    payload: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 1024,
+      messages: [{ role: "user", content: prompt }],
+    }),
+    muteHttpExceptions: true,
+  });
+
+  const result = JSON.parse(response.getContentText());
+  if (result.error) throw new Error("Claude API 오류: " + result.error.message);
+
+  return JSON.parse(result.content[0].text);
+}
+
+/**
+ * Notion DB에 심방 기록 페이지 생성
+ */
+function saveToNotion(data) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty("NOTION_API_KEY");
+  if (!apiKey) throw new Error("NOTION_API_KEY가 Script Properties에 설정되지 않았습니다.");
+
+  const payload = {
+    parent: { database_id: NOTION_DB_ID },
+    properties: {
+      "성도명": { title: [{ text: { content: data.shilMulGa } }] },
+      "심방일자": { date: { start: data.meetingDate } },
+      "심방방법": { select: { name: "방문심방" } },
+      "장소": { rich_text: [{ text: { content: data.meetingPlace } }] },
+      "내용": { rich_text: [{ text: { content: data.summary } }] },
+      "긴급기도제목": { rich_text: [{ text: { content: data.urgentPrayer } }] },
+      "후속조치": { rich_text: [{ text: { content: data.followUp } }] },
+    },
+  };
+
+  const response = UrlFetchApp.fetch("https://api.notion.com/v1/pages", {
+    method: "post",
+    headers: {
+      "Authorization": "Bearer " + apiKey,
+      "Notion-Version": "2022-06-28",
+      "Content-Type": "application/json",
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true,
+  });
+
+  const result = JSON.parse(response.getContentText());
+  if (result.object === "error") throw new Error("Notion API 오류: " + result.message);
+
+  return result.id;
+}
+
+/**
+ * Notion DB 속성 타입 확인용 (처음 한 번만 실행)
+ * Apps Script 에디터에서 직접 실행하여 컬럼 타입을 확인하세요.
+ */
+function checkNotionDbSchema() {
+  const apiKey = PropertiesService.getScriptProperties().getProperty("NOTION_API_KEY");
+  const response = UrlFetchApp.fetch("https://api.notion.com/v1/databases/" + NOTION_DB_ID, {
+    headers: {
+      "Authorization": "Bearer " + apiKey,
+      "Notion-Version": "2022-06-28",
+    },
+    muteHttpExceptions: true,
+  });
+  const result = JSON.parse(response.getContentText());
+  const props = result.properties;
+  Object.keys(props).forEach(key => {
+    Logger.log(key + " → " + props[key].type);
+  });
 }
