@@ -249,23 +249,24 @@ function initializeSpreadsheet() {
 }
 
 // ============================================================
-// 5초장 자동화: Claude AI 분석 + Notion 심방 기록
+// 5초장 자동화: Claude AI 특이사항 판단 + Notion 심방 기록
 // Script Properties에 CLAUDE_API_KEY, NOTION_API_KEY 설정 필요
 // ============================================================
 
 const NOTION_DB_ID = "378b5584-3f1e-4c61-8333-db18ee1f1776";
 
 /**
- * 5초장 보고서 제출 시 AI 분석 후 Notion에 저장
+ * 5초장 보고서 제출 시 AI로 특이사항 판단 후 해당되면 Notion에 저장
  */
 function processChoJang5Report(formData) {
   try {
-    const analysis = analyzeWithClaude(
-      formData.content || "",
-      formData.prayerRequest || "",
-      formData.shilMulGa || "",
-      formData.attendees || ""
-    );
+    const analysis = analyzeWithClaude(formData);
+
+    if (!analysis.hasSpecialCase) {
+      console.log("특이사항 없음 - Notion 저장 생략 (" + (formData.shilMulGa || "") + ")");
+      return;
+    }
+
     const notionPageId = saveToNotion({
       shilMulGa: formData.shilMulGa || "",
       meetingDate: formData.meetingDate || "",
@@ -274,34 +275,49 @@ function processChoJang5Report(formData) {
       urgentPrayer: analysis.urgentPrayer,
       followUp: analysis.followUp,
     });
-    console.log("Notion 심방 기록 저장 완료 - 페이지 ID:", notionPageId);
+    console.log("특이사항 감지 - Notion 심방 기록 저장 완료 (" + (formData.shilMulGa || "") + ") 페이지 ID:", notionPageId);
   } catch (err) {
-    // 자동화 실패가 보고서 제출 자체를 막지 않도록 에러만 로깅
     console.error("5초장 자동화 오류:", err.message);
   }
 }
 
 /**
- * Claude API로 모임 내용 분석
+ * Claude Sonnet으로 보고서 분석 및 특이사항 판단
+ * @returns {{ hasSpecialCase: boolean, summary: string, urgentPrayer: string, followUp: string }}
  */
-function analyzeWithClaude(content, prayerRequest, shilMulGa, attendees) {
+function analyzeWithClaude(formData) {
   const apiKey = PropertiesService.getScriptProperties().getProperty("CLAUDE_API_KEY");
   if (!apiKey) throw new Error("CLAUDE_API_KEY가 Script Properties에 설정되지 않았습니다.");
 
-  const prompt = `당신은 교회 목자 모임 보고서를 분석하는 전문가입니다.
+  const prompt = `당신은 교회 목자 모임 보고서를 분석하는 전문가입니다. 담임 목사가 직접 돌봄이 필요한 특이사항이 있는지 판단해주세요.
 
-쉴물가명: ${shilMulGa}
-참석인원: ${attendees}
-모임 내용: ${content}
-기도제목: ${prayerRequest}
+[보고서]
+쉴물가명: ${formData.shilMulGa || ""}
+모임날짜: ${formData.meetingDate || ""}
+참석인원: ${formData.attendees || ""}
+불참인원 및 사유: ${formData.absentees || ""}
+모임 내용: ${formData.content || ""}
+오늘 모임 평가: ${formData.evaluation || ""}
+기도제목: ${formData.prayerRequest || ""}
 
-다음 세 가지를 JSON으로 답해주세요:
-1. summary: 모임 내용 3~4문장 요약 (핵심 나눔, 분위기, 결정사항 포함)
-2. urgentPrayer: 기도제목에서 질병·경제 위기·가정 위기 등 긴급한 상황만 추출. 없으면 빈 문자열.
-3. followUp: 목사의 돌봄이 필요한 성도나 상황에 대한 구체적 후속조치 제안. 없으면 빈 문자열.
+[특이사항 해당 기준 - 하나라도 해당되면 hasSpecialCase: true]
+- 질병, 수술, 입원 언급
+- 가족 사망, 이별, 심각한 가족 갈등
+- 정신건강 문제 (공황장애, 우울증 등)
+- 경제적 어려움 (실직, 파산, 채무 등)
+- 불참이 반복되거나 불참 사유가 심각한 경우
+- 기도제목에 긴급하거나 위기적인 내용
+
+[일반 보고서 기준 - 아래만 해당되면 hasSpecialCase: false]
+- 평범한 말씀 나눔, 교제, 식사
+- "은혜로웠다", "감사하다" 수준의 내용
+- 자녀 시험, 취업 등 일반적인 기도제목
 
 반드시 아래 JSON 형식으로만 응답하세요 (설명 없이):
-{"summary":"...","urgentPrayer":"...","followUp":"..."}`;
+{"hasSpecialCase":true,"summary":"...","urgentPrayer":"...","followUp":"..."}
+
+hasSpecialCase가 false인 경우에도 나머지 필드는 빈 문자열로 채워 동일한 형식을 유지하세요.
+summary는 3~4문장, urgentPrayer는 감지된 위기 내용, followUp은 목사가 취해야 할 구체적 돌봄 방향.`;
 
   const response = UrlFetchApp.fetch("https://api.anthropic.com/v1/messages", {
     method: "post",
@@ -311,7 +327,7 @@ function analyzeWithClaude(content, prayerRequest, shilMulGa, attendees) {
       "content-type": "application/json",
     },
     payload: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-6",
       max_tokens: 1024,
       messages: [{ role: "user", content: prompt }],
     }),
