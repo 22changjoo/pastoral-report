@@ -319,6 +319,7 @@ function processChoJang5Report(formData) {
     Logger.log("[1단계] Claude 분석 시작");
     const analysis = analyzeWithClaude(formData);
     Logger.log("[2단계] Claude 분석 완료 - hasSpecialCase: " + analysis.hasSpecialCase);
+    Logger.log("[2단계] greetingMessage: " + (analysis.greetingMessage || "(없음)"));
 
     if (!analysis.hasSpecialCase) {
       Logger.log("특이사항 없음 - Notion 저장 생략 (" + (formData.shilMulGa || "") + ")");
@@ -333,6 +334,7 @@ function processChoJang5Report(formData) {
       summary: analysis.summary,
       urgentPrayer: analysis.urgentPrayer,
       followUp: analysis.followUp,
+      greetingMessage: analysis.greetingMessage || "",
     });
     Logger.log("특이사항 감지 - Notion 저장 완료: " + notionPageId);
   } catch (err) {
@@ -348,7 +350,7 @@ function analyzeWithClaude(formData) {
   const apiKey = PropertiesService.getScriptProperties().getProperty("CLAUDE_API_KEY");
   if (!apiKey) throw new Error("CLAUDE_API_KEY가 Script Properties에 설정되지 않았습니다.");
 
-  const prompt = `당신은 교회 목자 모임 보고서를 분석하는 전문가입니다. 담임 목사가 직접 돌봄이 필요한 특이사항이 있는지 판단해주세요.
+  const prompt = `당신은 교회 목자 모임 보고서를 분석하는 전문가입니다. 담당 목사가 직접 돌봄이 필요한 특이사항이 있는지 판단해주세요.
 
 [보고서]
 쉴물가명: ${formData.shilMulGa || ""}
@@ -373,10 +375,16 @@ function analyzeWithClaude(formData) {
 - 자녀 시험, 취업 등 일반적인 기도제목
 
 반드시 아래 JSON 형식으로만 응답하세요 (설명 없이):
-{"hasSpecialCase":true,"summary":"...","urgentPrayer":"...","followUp":"..."}
+{"hasSpecialCase":true,"summary":"...","urgentPrayer":"...","followUp":"...","greetingMessage":"..."}
 
 hasSpecialCase가 false인 경우에도 나머지 필드는 빈 문자열로 채워 동일한 형식을 유지하세요.
-summary는 3~4문장, urgentPrayer는 감지된 위기 내용, followUp은 목사가 취해야 할 구체적 돌봄 방향.`;
+summary는 3~4문장, urgentPrayer는 감지된 위기 내용, followUp은 담당목사가 취해야 할 구체적 돌봄 방향(성경구절·안부메시지 제외).
+
+greetingMessage 작성 규칙:
+- 형식: 카카오톡/문자로 바로 보낼 수 있는 메시지 본문만 (📖💬 등 라벨 없이 순수 텍스트)
+- 상황별 성경구절 선정: 질병/입원→사 41:10·시23편·롬8:28, 재정어려움→빌4:19·마6:31-33, 사별/상실→시34:18·사43:2, 정신건강→마11:28·사40:31, 가족갈등→골3:13-14·엡4:32, 진로불확실→잠3:5-6·렘29:11
+- 목사가 직접 쓴 1인칭 구어체, 3-5줄, 성도명으로 시작, 구체적 문제 직접 언급 금지, 성경구절 자연스럽게 녹이기, 마지막은 기도하고 있다는 내용, 이모지 1-2개 절제
+- 좋은 예: "집사님, 오늘 뵙고 많이 생각이 났어요.\n새로운 곳에서 적응하는 게 생각보다 쉽지 않으시죠.\n\"내가 너와 함께 하리라\" 하신 말씀 붙들고 하루하루 살아가시길 바랍니다.\n늘 기도하고 있어요 🙏"`;
 
   const response = UrlFetchApp.fetch("https://api.anthropic.com/v1/messages", {
     method: "post",
@@ -417,6 +425,7 @@ function saveToNotion(data) {
       "내용": { rich_text: [{ text: { content: data.summary } }] },
       "긴급기도제목": { rich_text: [{ text: { content: data.urgentPrayer } }] },
       "후속조치": { rich_text: [{ text: { content: data.followUp } }] },
+      "안부메시지": { rich_text: [{ text: { content: data.greetingMessage } }] },
     },
   };
 
