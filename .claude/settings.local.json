@@ -10,7 +10,11 @@
       "Bash(npx --version)",
       "Read(//usr/local/bin/**)",
       "Read(//opt/homebrew/**)",
-      "Bash(ruby --version)"
+      "Bash(ruby --version)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(curl -L -s \"https://script.google.com/macros/s/AKfycbyhL2NK7_bB7D2BkVhn7ctTvBKwdOT8cIGEDY1qrdYUqN_VvqJ7zfrY3B1cVVSxWYvDzA/exec\")"
     ]
   }
 }

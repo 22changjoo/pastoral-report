@@ -10,6 +10,8 @@ const CONFIG = {
   // 담당 목사 이메일 (초장별)
   PASTOR_EMAILS: {
     "1초장": "21cdavidmy@igodswill.org",
+    "2초장": "hwjcho@igodswill.org",
+    "3초장": "hwjcho@igodswill.org",
     "2/3초장": "hwjcho@igodswill.org",
     "4초장": "ahavtika@igodswill.org",
     "5초장": "gwcj@igodswill.org",
@@ -28,107 +30,39 @@ const CONFIG = {
 const HEADERS = [
   "제출일시",
   "모임날짜",
+  "초장",
   "쉴물가",
   "장소",
+  "참석인원수",
   "참석인원",
   "불참인원 및 사유",
   "모임내용",
-  "오늘 모임은 어땠나요",
+  "모임평가 및 건의사항",
   "기도제목",
 ];
 
 /**
- * 웹앱 GET 요청 - admin.html에서 데이터 요청 시 JSON 반환, 그 외엔 HTML 반환
+ * 웹앱 GET 요청 - 폼 HTML을 반환
  */
-function doGet(e) {
-  if (e && e.parameter && e.parameter.action === 'getReports') {
-    return getReportsJson();
-  }
+function doGet() {
   return HtmlService.createHtmlOutputFromFile("index")
     .setTitle("쉴물가 모임 보고서")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 /**
- * 웹앱 POST 요청 - 외부에서 JSON으로 전송된 폼 데이터를 받아 처리
+ * 웹앱 POST 요청 - 외부 fetch()로 제출 처리
  */
 function doPost(e) {
   try {
-    let formData;
-    if (e && e.postData && e.postData.contents) {
-      formData = JSON.parse(e.postData.contents);
-    } else if (e && e.parameter) {
-      formData = e.parameter;
-    } else {
-      throw new Error("No data received");
-    }
-
+    const formData = JSON.parse(e.postData.contents);
     const result = submitReport(formData);
-    
-    return ContentService.createTextOutput(JSON.stringify(result))
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-/**
- * 스프레드시트 셀 값을 날짜 문자열(yyyy-MM-dd)로 변환
- * Sheets가 날짜를 Date 객체로 저장한 경우에도 일관된 형식 반환
- */
-function cellToDateString(val) {
-  if (!val) return '';
-  // instanceof Date가 Apps Script에서 실패하는 경우를 대비해 try/catch 사용
-  try {
-    return Utilities.formatDate(val, "Asia/Seoul", "yyyy-MM-dd");
-  } catch(e) {}
-  const s = String(val);
-  const m = s.match(/(\d{4}-\d{2}-\d{2})/);
-  return m ? m[1] : s;
-}
-
-/**
- * 보고서 목록을 JSON으로 반환 (admin.html 연동용)
- */
-function getReportsJson() {
-  try {
-    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-    const sheets = ss.getSheets();
-    let allReports = [];
-
-    sheets.forEach(sheet => {
-      const data = sheet.getDataRange().getValues();
-      if (data.length <= 1) return; // 헤더만 있는 경우 패스
-
-      // 헤더: [0:제출일시, 1:모임날짜, 2:쉴물가, 3:장소, 4:참석인원, 5:불참인원 및 사유, 6:모임내용, 7:오늘 모임은 어땠나요, 8:기도제목]
-      for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-
-        const attendeesStr = row[4] ? String(row[4]) : '';
-        const count = attendeesStr ? attendeesStr.split(',').length : 0;
-        const sheetChoJang = sheet.getName();
-
-        allReports.push({
-          submitDate: row[0] ? String(row[0]) : '',
-          choJang: sheetChoJang,
-          shilMulGa: row[2] ? String(row[2]) : '',
-          meetingDate: cellToDateString(row[1]),
-          meetingPlace: row[3] ? String(row[3]) : '',
-          attendeeCount: count,
-          attendees: attendeesStr,
-          absentees: row[5] ? String(row[5]) : '',
-          content: row[6] ? String(row[6]) : '',
-          evaluation: row[7] ? String(row[7]) : '',
-          prayerRequest: row[8] ? String(row[8]) : ''
-        });
-      }
-    });
-
-    return ContentService.createTextOutput(JSON.stringify({ success: true, reports: allReports }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.message }))
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, message: err.message }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
@@ -139,7 +73,8 @@ function getReportsJson() {
 function submitReport(formData) {
   try {
     const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-    const sheetName = formData.choJang; // 예: "1초장"
+    // 시트명에 "/" 허용 안 되므로 "2/3초장" → "2-3초장"으로 변환
+    const sheetName = formData.choJang.replace(/\//g, '-');
 
     // 해당 초장 시트 가져오기 (없으면 생성)
     let sheet = ss.getSheetByName(sheetName);
@@ -160,8 +95,10 @@ function submitReport(formData) {
     const row = [
       Utilities.formatDate(now, "Asia/Seoul", "yyyy-MM-dd HH:mm:ss"),
       formData.meetingDate,
+      formData.choJang,
       formData.shilMulGa,
       formData.meetingPlace,
+      formData.attendeeCount,
       formData.attendees,
       formData.absentees,
       formData.content,
@@ -202,45 +139,41 @@ function sendEmailNotification(formData, submitTime) {
   const htmlBody = `
   <div style="font-family: 'Malgun Gothic', sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
     <div style="background: #2E7D32; color: white; padding: 20px 24px;">
-      <h2 style="margin: 0; font-size: 18px;">목자 모임 보고서</h2>
+      <h2 style="margin: 0; font-size: 18px;">📋 목자 모임 보고서</h2>
       <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.85;">${CONFIG.CHURCH_NAME}</p>
     </div>
     <div style="padding: 24px; background: #f9f9f9;">
       <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <tr style="background: #E8F5E9;">
-          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; width: 35%; border-bottom: 1px solid #e0e0e0;">초장</td>
-          <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0;">${formData.choJang}</td>
-        </tr>
-        <tr>
-          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">쉴물가(또는 목자이름)</td>
-          <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0;">${formData.shilMulGa}</td>
-        </tr>
-        <tr style="background: #fafafa;">
-          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">모임 날짜</td>
+          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; width: 35%; border-bottom: 1px solid #e0e0e0;">모임 날짜</td>
           <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0;">${meetingDateStr}</td>
         </tr>
         <tr>
-          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">모임 장소</td>
+          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">초장 / 쉴물가</td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0;">${formData.choJang} / ${formData.shilMulGa}</td>
+        </tr>
+        <tr style="background: #fafafa;">
+          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">장소</td>
           <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0;">${formData.meetingPlace || "-"}</td>
         </tr>
-        <tr style="background: #fafafa;">
-          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">참석자</td>
-          <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0;">${formData.attendees || "-"} (${formData.attendees ? formData.attendees.split(',').length : 0}명)</td>
-        </tr>
         <tr>
-          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">불참자 및 사유</td>
+          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">참석인원</td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0;">${formData.attendeeCount}명 | ${formData.attendees || "-"}</td>
+        </tr>
+        <tr style="background: #fafafa;">
+          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">불참인원 및 사유</td>
           <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0; white-space: pre-wrap;">${formData.absentees || "없음"}</td>
         </tr>
-        <tr style="background: #fafafa;">
+        <tr>
           <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">모임 내용</td>
           <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0; white-space: pre-wrap;">${formData.content || "-"}</td>
         </tr>
-        <tr>
-          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">오늘 모임은 어땠나요?</td>
+        <tr style="background: #fafafa;">
+          <td style="padding: 12px 16px; font-weight: bold; color: #1B5E20; background: #E8F5E9; border-bottom: 1px solid #e0e0e0;">모임 평가 및 건의사항</td>
           <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0; white-space: pre-wrap;">${formData.evaluation || "없음"}</td>
         </tr>
-        <tr style="background: #fafafa;">
-          <td style="padding: 12px 16px; font-weight: bold; color: #C62828; background: #FFEBEE; border-bottom: 1px solid #e0e0e0;">기도제목</td>
+        <tr>
+          <td style="padding: 12px 16px; font-weight: bold; color: #C62828; background: #FFEBEE; border-bottom: 1px solid #e0e0e0;">🙏 기도제목</td>
           <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0; white-space: pre-wrap; color: ${formData.prayerRequest ? '#C62828' : '#666'}; font-weight: ${formData.prayerRequest ? 'bold' : 'normal'};">${formData.prayerRequest || "없음"}</td>
         </tr>
       </table>
@@ -279,7 +212,7 @@ function formatHeaderRow(sheet) {
   sheet.setRowHeight(1, 36);
 
   // 열 너비 설정
-  const colWidths = [150, 100, 150, 150, 200, 200, 200, 250, 250];
+  const colWidths = [150, 100, 70, 100, 120, 70, 150, 200, 300, 200, 250];
   colWidths.forEach((width, i) => sheet.setColumnWidth(i + 1, width));
 }
 
@@ -289,7 +222,7 @@ function formatHeaderRow(sheet) {
  */
 function initializeSpreadsheet() {
   const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-  const sheetNames = ["1초장", "2/3초장", "4초장", "5초장", "6초장"];
+  const sheetNames = ["1초장", "2초장", "3초장", "4초장", "5초장", "6초장"];
 
   sheetNames.forEach((name) => {
     let sheet = ss.getSheetByName(name);
