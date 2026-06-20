@@ -316,13 +316,16 @@ const NOTION_DB_ID = "378b5584-3f1e-4c61-8333-db18ee1f1776";
  */
 function processChoJang5Report(formData) {
   try {
+    Logger.log("[1단계] Claude 분석 시작");
     const analysis = analyzeWithClaude(formData);
+    Logger.log("[2단계] Claude 분석 완료 - hasSpecialCase: " + analysis.hasSpecialCase);
 
     if (!analysis.hasSpecialCase) {
       Logger.log("특이사항 없음 - Notion 저장 생략 (" + (formData.shilMulGa || "") + ")");
       return;
     }
 
+    Logger.log("[3단계] Notion 저장 시작");
     const notionPageId = saveToNotion({
       shilMulGa: formData.shilMulGa || "",
       meetingDate: formData.meetingDate || "",
@@ -331,9 +334,9 @@ function processChoJang5Report(formData) {
       urgentPrayer: analysis.urgentPrayer,
       followUp: analysis.followUp,
     });
-    Logger.log("특이사항 감지 - Notion 심방 기록 저장 완료 (" + (formData.shilMulGa || "") + ") 페이지 ID:", notionPageId);
+    Logger.log("특이사항 감지 - Notion 저장 완료: " + notionPageId);
   } catch (err) {
-    Logger.log("5초장 자동화 오류:", err.message);
+    Logger.log("5초장 자동화 오류: " + (err.message || String(err)));
   }
 }
 
@@ -393,7 +396,8 @@ summary는 3~4문장, urgentPrayer는 감지된 위기 내용, followUp은 목�
   const result = JSON.parse(response.getContentText());
   if (result.error) throw new Error("Claude API 오류: " + result.error.message);
 
-  return JSON.parse(result.content[0].text);
+  const raw = result.content[0].text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  return JSON.parse(raw);
 }
 
 /**
@@ -431,6 +435,21 @@ function saveToNotion(data) {
   if (result.object === "error") throw new Error("Notion API 오류: " + result.message);
 
   return result.id;
+}
+
+function testNotion5() {
+  const testData = {
+    choJang: "5초장",
+    shilMulGa: "테스트 쉴물가",
+    meetingDate: "2026-06-20",
+    meetingPlace: "테스트 장소",
+    attendees: "홍길동, 김철수",
+    absentees: "",
+    content: "말씀 나눔을 했습니다",
+    evaluation: "은혜로웠습니다",
+    prayerRequest: "홍길동이 많이 아파요. 수술도 해야해요.",
+  };
+  processChoJang5Report(testData);
 }
 
 /**
