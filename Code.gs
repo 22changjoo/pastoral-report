@@ -30,14 +30,12 @@ const CONFIG = {
 const HEADERS = [
   "제출일시",
   "모임날짜",
-  "초장",
   "쉴물가",
   "장소",
-  "참석인원수",
   "참석인원",
   "불참인원 및 사유",
   "모임내용",
-  "모임평가 및 건의사항",
+  "오늘 모임은 어땠나요?",
   "기도제목",
 ];
 
@@ -155,10 +153,8 @@ function submitReport(formData) {
     const row = [
       Utilities.formatDate(now, "Asia/Seoul", "yyyy-MM-dd HH:mm:ss"),
       formData.meetingDate,
-      formData.choJang,
       formData.shilMulGa,
       formData.meetingPlace,
-      formData.attendeeCount,
       formData.attendees,
       formData.absentees,
       formData.content,
@@ -277,7 +273,7 @@ function formatHeaderRow(sheet) {
   sheet.setRowHeight(1, 36);
 
   // 열 너비 설정
-  const colWidths = [150, 100, 70, 100, 120, 70, 150, 200, 300, 200, 250];
+  const colWidths = [150, 100, 100, 120, 200, 200, 300, 200, 250];
   colWidths.forEach((width, i) => sheet.setColumnWidth(i + 1, width));
 }
 
