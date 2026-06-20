@@ -68,6 +68,8 @@ function cellToDateString(val) {
 
 /**
  * 보고서 목록을 JSON으로 반환 (admin.html 대시보드용)
+ * 컬럼: [0:제출일시, 1:모임날짜, 2:쉴물가, 3:장소, 4:참석인원,
+ *        5:불참인원 및 사유, 6:모임내용, 7:오늘 모임은 어땠나요, 8:기도제목]
  */
 function getReportsJson() {
   try {
@@ -81,21 +83,21 @@ function getReportsJson() {
 
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
-        const attendeesStr = row[6] ? String(row[6]) : '';
-        const count = row[5] ? String(row[5]) : (attendeesStr ? attendeesStr.split(',').length : 0);
+        const attendeesStr = row[4] ? String(row[4]) : '';
+        const count = attendeesStr ? attendeesStr.split(',').length : 0;
 
         allReports.push({
           submitDate: row[0] ? String(row[0]) : '',
-          choJang: row[2] ? String(row[2]) : sheet.getName(),
-          shilMulGa: row[3] ? String(row[3]) : '',
+          choJang: sheet.getName(),
+          shilMulGa: row[2] ? String(row[2]) : '',
           meetingDate: cellToDateString(row[1]),
-          meetingPlace: row[4] ? String(row[4]) : '',
+          meetingPlace: row[3] ? String(row[3]) : '',
           attendeeCount: count,
           attendees: attendeesStr,
-          absentees: row[7] ? String(row[7]) : '',
-          content: row[8] ? String(row[8]) : '',
-          evaluation: row[9] ? String(row[9]) : '',
-          prayerRequest: row[10] ? String(row[10]) : '',
+          absentees: row[5] ? String(row[5]) : '',
+          content: row[6] ? String(row[6]) : '',
+          evaluation: row[7] ? String(row[7]) : '',
+          prayerRequest: row[8] ? String(row[8]) : '',
         });
       }
     });
