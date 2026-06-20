@@ -42,12 +42,70 @@ const HEADERS = [
 ];
 
 /**
- * 웹앱 GET 요청 - 폼 HTML을 반환
+ * 웹앱 GET 요청 - 폼 HTML 반환 또는 보고서 데이터 JSON 반환
  */
-function doGet() {
+function doGet(e) {
+  if (e && e.parameter && e.parameter.action === 'getReports') {
+    return getReportsJson();
+  }
   return HtmlService.createHtmlOutputFromFile("index")
     .setTitle("쉴물가 모임 보고서")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * 스프레드시트 셀 값을 날짜 문자열(yyyy-MM-dd)로 변환
+ */
+function cellToDateString(val) {
+  if (!val) return '';
+  try {
+    return Utilities.formatDate(val, "Asia/Seoul", "yyyy-MM-dd");
+  } catch(e) {}
+  const s = String(val);
+  const m = s.match(/(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : s;
+}
+
+/**
+ * 보고서 목록을 JSON으로 반환 (admin.html 대시보드용)
+ */
+function getReportsJson() {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheets = ss.getSheets();
+    let allReports = [];
+
+    sheets.forEach(sheet => {
+      const data = sheet.getDataRange().getValues();
+      if (data.length <= 1) return;
+
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        const attendeesStr = row[6] ? String(row[6]) : '';
+        const count = row[5] ? String(row[5]) : (attendeesStr ? attendeesStr.split(',').length : 0);
+
+        allReports.push({
+          submitDate: row[0] ? String(row[0]) : '',
+          choJang: row[2] ? String(row[2]) : sheet.getName(),
+          shilMulGa: row[3] ? String(row[3]) : '',
+          meetingDate: cellToDateString(row[1]),
+          meetingPlace: row[4] ? String(row[4]) : '',
+          attendeeCount: count,
+          attendees: attendeesStr,
+          absentees: row[7] ? String(row[7]) : '',
+          content: row[8] ? String(row[8]) : '',
+          evaluation: row[9] ? String(row[9]) : '',
+          prayerRequest: row[10] ? String(row[10]) : '',
+        });
+      }
+    });
+
+    return ContentService.createTextOutput(JSON.stringify({ success: true, reports: allReports }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 /**
