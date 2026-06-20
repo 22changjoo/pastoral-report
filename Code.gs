@@ -177,7 +177,7 @@ function submitReport(formData) {
 
     return { success: true, message: "보고서가 성공적으로 제출되었습니다." };
   } catch (e) {
-    console.error("submitReport 오류:", e);
+    Logger.log("submitReport 오류:", e);
     return { success: false, message: "오류가 발생했습니다: " + e.message };
   }
 }
@@ -188,7 +188,7 @@ function submitReport(formData) {
 function sendEmailNotification(formData, submitTime) {
   const toEmail = CONFIG.PASTOR_EMAILS[formData.choJang];
   if (!toEmail) {
-    console.warn("이메일 주소가 설정되지 않은 초장:", formData.choJang);
+    Logger.log("이메일 주소가 설정되지 않은 초장:", formData.choJang);
     return;
   }
 
@@ -319,7 +319,7 @@ function processChoJang5Report(formData) {
     const analysis = analyzeWithClaude(formData);
 
     if (!analysis.hasSpecialCase) {
-      console.log("특이사항 없음 - Notion 저장 생략 (" + (formData.shilMulGa || "") + ")");
+      Logger.log("특이사항 없음 - Notion 저장 생략 (" + (formData.shilMulGa || "") + ")");
       return;
     }
 
@@ -331,9 +331,9 @@ function processChoJang5Report(formData) {
       urgentPrayer: analysis.urgentPrayer,
       followUp: analysis.followUp,
     });
-    console.log("특이사항 감지 - Notion 심방 기록 저장 완료 (" + (formData.shilMulGa || "") + ") 페이지 ID:", notionPageId);
+    Logger.log("특이사항 감지 - Notion 심방 기록 저장 완료 (" + (formData.shilMulGa || "") + ") 페이지 ID:", notionPageId);
   } catch (err) {
-    console.error("5초장 자동화 오류:", err.message);
+    Logger.log("5초장 자동화 오류:", err.message);
   }
 }
 
