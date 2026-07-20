@@ -200,7 +200,7 @@ function sendEmailNotification(formData, submitTime) {
   const htmlBody = `
   <div style="font-family: 'Malgun Gothic', sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
     <div style="background: #2E7D32; color: white; padding: 20px 24px;">
-      <h2 style="margin: 0; font-size: 18px;">📋 목자 모임 보고서</h2>
+      <h2 style="margin: 0; font-size: 18px;">목자 모임 보고서</h2>
       <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.85;">${CONFIG.CHURCH_NAME}</p>
     </div>
     <div style="padding: 24px; background: #f9f9f9;">
@@ -234,7 +234,7 @@ function sendEmailNotification(formData, submitTime) {
           <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0; white-space: pre-wrap;">${formData.evaluation || "없음"}</td>
         </tr>
         <tr>
-          <td style="padding: 12px 16px; font-weight: bold; color: #C62828; background: #FFEBEE; border-bottom: 1px solid #e0e0e0;">🙏 기도제목</td>
+          <td style="padding: 12px 16px; font-weight: bold; color: #C62828; background: #FFEBEE; border-bottom: 1px solid #e0e0e0;">기도제목</td>
           <td style="padding: 12px 16px; border-bottom: 1px solid #e0e0e0; white-space: pre-wrap; color: ${formData.prayerRequest ? '#C62828' : '#666'}; font-weight: ${formData.prayerRequest ? 'bold' : 'normal'};">${formData.prayerRequest || "없음"}</td>
         </tr>
       </table>
@@ -310,6 +310,7 @@ function initializeSpreadsheet() {
 // ============================================================
 
 const NOTION_DB_ID = "378b5584-3f1e-4c61-8333-db18ee1f1776";
+const SLACK_CHANNEL_ID = "C0B6T5M3H0D";
 
 /**
  * 5초장 보고서 제출 시 AI로 특이사항 판단 후 해당되면 Notion에 저장
@@ -337,6 +338,14 @@ function processChoJang5Report(formData) {
       greetingMessage: analysis.greetingMessage || "",
     });
     Logger.log("특이사항 감지 - Notion 저장 완료: " + notionPageId);
+
+    Logger.log("[4단계] Slack 발송 시작");
+    sendSlackGreeting({
+      shilMulGa: formData.shilMulGa || "",
+      meetingDate: formData.meetingDate || "",
+      greetingMessage: analysis.greetingMessage || "",
+    });
+    Logger.log("[4단계] Slack 발송 완료");
   } catch (err) {
     Logger.log("5초장 자동화 오류: " + (err.message || String(err)));
   }
@@ -465,6 +474,32 @@ function testNotion5() {
  * Notion DB 속성 타입 확인용 (처음 한 번만 실행)
  * Apps Script 에디터에서 직접 실행하여 컬럼 타입을 확인하세요.
  */
+/**
+ * Slack #심방안부메시지 채널에 안부메시지 발송
+ */
+function sendSlackGreeting(data) {
+  const token = PropertiesService.getScriptProperties().getProperty("SLACK_BOT_TOKEN");
+  if (!token) throw new Error("SLACK_BOT_TOKEN이 Script Properties에 설정되지 않았습니다.");
+
+  const text = `📬 ${data.shilMulGa} | ${data.meetingDate}\n${data.greetingMessage}\n발송 후 ✅ 이모지 반응 달아주세요`;
+
+  const response = UrlFetchApp.fetch("https://slack.com/api/chat.postMessage", {
+    method: "post",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Content-Type": "application/json; charset=utf-8",
+    },
+    payload: JSON.stringify({
+      channel: SLACK_CHANNEL_ID,
+      text: text,
+    }),
+    muteHttpExceptions: true,
+  });
+
+  const result = JSON.parse(response.getContentText());
+  if (!result.ok) throw new Error("Slack API 오류: " + result.error);
+}
+
 function checkNotionDbSchema() {
   const apiKey = PropertiesService.getScriptProperties().getProperty("NOTION_API_KEY");
   const response = UrlFetchApp.fetch("https://api.notion.com/v1/databases/" + NOTION_DB_ID, {
