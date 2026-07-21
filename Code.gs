@@ -330,6 +330,7 @@ function processChoJang5Report(formData) {
     Logger.log("[3단계] Notion 저장 시작");
     const notionPageId = saveToNotion({
       shilMulGa: formData.shilMulGa || "",
+      targetName: analysis.targetName || formData.shilMulGa || "",
       meetingDate: formData.meetingDate || "",
       meetingPlace: formData.meetingPlace || "",
       summary: analysis.summary,
@@ -384,9 +385,10 @@ function analyzeWithClaude(formData) {
 - 자녀 시험, 취업 등 일반적인 기도제목
 
 반드시 아래 JSON 형식으로만 응답하세요 (설명 없이):
-{"hasSpecialCase":true,"summary":"...","urgentPrayer":"...","followUp":"...","greetingMessage":"..."}
+{"hasSpecialCase":true,"targetName":"...","summary":"...","urgentPrayer":"...","followUp":"...","greetingMessage":"..."}
 
 hasSpecialCase가 false인 경우에도 나머지 필드는 빈 문자열로 채워 동일한 형식을 유지하세요.
+targetName은 심방 및 돌봄이 필요한 구체적인 대상자(성도명)의 이름입니다. 만약 구체적인 대상자를 특정할 수 없다면 빈 문자열로 남겨두세요.
 summary는 3~4문장, urgentPrayer는 감지된 위기 내용, followUp은 담당목사가 취해야 할 구체적 돌봄 방향(성경구절·안부메시지 제외).
 
 greetingMessage 작성 규칙:
@@ -427,7 +429,7 @@ function saveToNotion(data) {
   const payload = {
     parent: { database_id: NOTION_DB_ID },
     properties: {
-      "성도명": { title: [{ text: { content: data.shilMulGa } }] },
+      "성도명": { title: [{ text: { content: data.targetName } }] },
       "심방일자": { date: { start: data.meetingDate } },
       "심방방법": { select: { name: "방문심방" } },
       "장소": { rich_text: [{ text: { content: data.meetingPlace } }] },
