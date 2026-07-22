@@ -632,16 +632,24 @@
       }
     }
 
+    // ── 오탐 예외 패턴 (사고 예방 기도 / 단순 감사 및 일상 표현) ──
+    const EXCLUDE_PATTERNS = [
+      /사고\s*(없이|없게|안|나지|않|예방|지켜|없기)/,
+      /사고로\s*이어지지\s*않/,
+      /사고\s*나지\s*않/,
+      /유쾌/
+    ];
+
     // ── 긴급 심방/돌봄 및 장기결석 키워드 선별 ──
     const CARE_KEYWORDS = [
       // 질병 / 의료 / 사고
-      '입원', '수술', '병환', '투병', '암', '사고', '다침', '응급', '치료',
+      '입원', '수술', '병환', '투병', '암', '다침', '응급', '치료중', '치료 중',
       // 사별 / 장례
       '사별', '장례', '소천', '상가', '부고', '별세',
       // 정신건강 / 위기 / 재정 / 기타 긴급
       '공황', '우울', '위기', '긴급', '파산', '채무', '가정사', '이혼', '가족 갈등', '가족갈등',
       // 장기 불참 / 장기 결석
-      '장기', '결석', '장기불참', '장기결석', '오래', '연락 안', '연락안', '안 나옴', '안나옴', '쉬고', '쉬는'
+      '장기', '장기불참', '장기결석', '오래', '연락 안', '연락안', '안 나옴', '안나옴', '쉬고', '쉬는'
     ];
 
     function isCareNeededReport(r) {
@@ -653,18 +661,51 @@
       ].join(' ');
 
       if (!text.trim()) return false;
-      return CARE_KEYWORDS.some(kw => text.includes(kw));
+
+      // 1. 사고 예방 기도 등 오탐 예외 패턴이 있으면 예외 대상 여부 체크
+      const hasExclude = EXCLUDE_PATTERNS.some(pattern => pattern.test(text));
+
+      // 2. 핵심 위기/장기결석 키워드 검사
+      let hasKeyword = CARE_KEYWORDS.some(kw => text.includes(kw));
+      
+      // 3. '사고' 단어가 들어있지만 예외 패턴이 아닌 실제 사고건인 경우
+      if (!hasKeyword && !hasExclude && text.includes('사고')) {
+        hasKeyword = true;
+      }
+
+      return hasKeyword;
     }
 
     function highlightCareKeywords(str) {
       if (!str) return '';
       let text = String(str);
+
+      // 예외 패턴 문구는 하이라이트에서 제외하기 위해 임시 보호
+      const tempReplacements = [];
+      EXCLUDE_PATTERNS.forEach((pattern, idx) => {
+        text = text.replace(pattern, (match) => {
+          const token = `__EXCLUDE_TOKEN_${idx}_${tempReplacements.length}__`;
+          tempReplacements.push({ token, match });
+          return token;
+        });
+      });
+
+      // 키워드 하이라이트 적용
       CARE_KEYWORDS.forEach(kw => {
         if (!kw) return;
         const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const reg = new RegExp(escaped, 'g');
         text = text.replace(reg, `<mark class="kw-highlight">${kw}</mark>`);
       });
+
+      // 실제 사고건인 경우 '사고' 단어 하이라이트
+      text = text.replace(/사고/g, `<mark class="kw-highlight">사고</mark>`);
+
+      // 임시 보호했던 예외 패턴 문구 원복
+      tempReplacements.forEach(({ token, match }) => {
+        text = text.replace(token, match);
+      });
+
       return text;
     }
 
