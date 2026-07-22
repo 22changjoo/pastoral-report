@@ -338,14 +338,16 @@
       background: #FFF8F8;
     }
     .care-needed-badge {
-      font-size: 11px;
-      font-weight: 700;
-      color: #c62828;
+      font-size: 13px;
+      padding: 3px 6px;
       background: #FFEBEE;
-      padding: 2px 7px;
       border-radius: 6px;
       border: 1px solid #FFCDD2;
       flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
     }
     .kw-highlight {
       background-color: #FFE082;
@@ -363,18 +365,19 @@
       gap: 12px;
     }
 
-    .report-card-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+    .report-card-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+    .report-card-info { flex: 1; min-width: 0; }
 
     .chojang-badge {
       flex-shrink: 0;
-      padding: 4px 10px;
+      padding: 4px 8px;
       border-radius: 8px;
       font-size: 12px;
       font-weight: 700;
     }
 
     .report-title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .report-meta { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+    .report-meta { font-size: 12px; color: var(--text-sub); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .report-card-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .report-date { font-size: 12px; color: var(--text-sub); }
@@ -846,7 +849,7 @@
       list.innerHTML = sorted.map((r, i) => {
         const isCare = isCareNeededReport(r);
         const cardClass = isCare ? 'report-card care-needed' : 'report-card';
-        const badgeHtml = isCare ? '<span class="care-needed-badge">🚨 심방필요</span>' : '';
+        const badgeHtml = isCare ? '<span class="care-needed-badge" title="심방필요">🚨</span>' : '';
 
         return `
         <div class="${cardClass}" id="card-${i}">
@@ -854,7 +857,7 @@
             <div class="report-card-left">
               ${badgeHtml}
               <span class="chojang-badge" style="${getChojangColor(r.choJang)}">${r.choJang}</span>
-              <div>
+              <div class="report-card-info">
                 <div class="report-title">${r.shilMulGa}</div>
                 <div class="report-meta">${formatMeetingDate(r.meetingDate)} · ${sanitizePlace(r.meetingPlace)}</div>
               </div>
