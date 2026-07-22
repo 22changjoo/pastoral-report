@@ -260,6 +260,44 @@
     .toast.error { background: #c62828; }
 
     .hint { font-size: 12px; color: #888; margin-top: 5px; }
+
+    /* 커스텀 쉴물가 드롭다운 */
+    .form-group-relative { position: relative; }
+    .shilmulga-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      background: white;
+      border: 1.5px solid #2E7D32;
+      border-radius: 8px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      z-index: 999;
+      margin-top: 4px;
+    }
+    .shilmulga-dropdown-item {
+      padding: 11px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      color: #333;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.15s;
+    }
+    .shilmulga-dropdown-item:last-child { border-bottom: none; }
+    .shilmulga-dropdown-item:hover, .shilmulga-dropdown-item.active {
+      background: #E8F5E9;
+      color: #2E7D32;
+      font-weight: 600;
+    }
+    .shilmulga-dropdown-empty {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #888;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -300,11 +338,11 @@
         </div>
 
         <!-- 쉴물가 -->
-        <div class="form-group">
+        <div class="form-group form-group-relative">
           <label for="shilMulGa">쉴물가(또는 목자이름) <span class="required">*</span></label>
-          <input type="text" id="shilMulGa" list="shilMulGaList" placeholder="예: ○○○ 쉴물가" autocomplete="off" required />
-          <datalist id="shilMulGaList"></datalist>
-          <div class="hint" id="shilMulGaHint" style="display:none; color: #2E7D32;">4·5·6초장의 경우 클릭하거나 이름을 입력하면 연관 쉴물가가 표시됩니다.</div>
+          <input type="text" id="shilMulGa" placeholder="예: ○○○ 쉴물가" autocomplete="off" required />
+          <div id="shilMulGaDropdown" class="shilmulga-dropdown"></div>
+          <div class="hint" id="shilMulGaHint" style="display:none; color: #2E7D32;">💡 4·5·6초장의 경우 클릭하거나 이름을 입력하면 연관 쉴물가가 표시됩니다.</div>
         </div>
 
         <!-- 모임 날짜 -->
@@ -423,25 +461,18 @@
       }
     }
 
-    // 초장 선택 변경에 따른 쉴물가 자동완성 리스트 갱신
+    // 초장 선택 변경에 따른 쉴물가 커스텀 자동완성 드롭다운 제어
     function updateShilMulGaOptions() {
       const choJangVal = document.getElementById('choJang').value;
-      const datalist = document.getElementById('shilMulGaList');
       const hint = document.getElementById('shilMulGaHint');
-
-      datalist.innerHTML = '';
+      const dropdown = document.getElementById('shilMulGaDropdown');
+      if (dropdown) dropdown.style.display = 'none';
 
       const list = shilMulGaMap[choJangVal] || [];
 
       if (list.length > 0) {
-        list.forEach(item => {
-          const opt = document.createElement('option');
-          opt.value = item;
-          datalist.appendChild(opt);
-        });
-
         if (hint) {
-          hint.textContent = `💡 ${choJangVal} 쉴물가 목록(${list.length}개)이 연결되었습니다. 두 글자 이상 입력 시 자동완성됩니다.`;
+          hint.textContent = `💡 ${choJangVal} 쉴물가 목록(${list.length}개)이 연결되었습니다. 클릭하거나 입력하시면 추천됩니다.`;
           hint.style.display = 'block';
         }
       } else {
@@ -456,9 +487,65 @@
       }
     }
 
+    // 커스텀 드롭다운 리스트 렌더링 및 필터링
+    function renderShilMulGaDropdown() {
+      const choJangVal = document.getElementById('choJang').value;
+      const input = document.getElementById('shilMulGa');
+      const dropdown = document.getElementById('shilMulGaDropdown');
+      if (!input || !dropdown) return;
+
+      const fullList = shilMulGaMap[choJangVal] || [];
+      if (fullList.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      const keyword = input.value.trim().toLowerCase();
+      const filtered = keyword
+        ? fullList.filter(item => item.toLowerCase().includes(keyword))
+        : fullList;
+
+      dropdown.innerHTML = '';
+
+      if (filtered.length === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'shilmulga-dropdown-empty';
+        emptyDiv.textContent = `'${input.value}' 검색 결과가 없습니다. (직접 입력 가능)`;
+        dropdown.appendChild(emptyDiv);
+      } else {
+        filtered.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'shilmulga-dropdown-item';
+          div.textContent = item;
+          div.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            input.value = item;
+            dropdown.style.display = 'none';
+          });
+          dropdown.appendChild(div);
+        });
+      }
+
+      dropdown.style.display = 'block';
+    }
+
     document.getElementById('choJang').addEventListener('change', function() {
       updateShilMulGaOptions();
     });
+
+    const shilInput = document.getElementById('shilMulGa');
+    const shilDropdown = document.getElementById('shilMulGaDropdown');
+
+    if (shilInput) {
+      shilInput.addEventListener('focus', renderShilMulGaDropdown);
+      shilInput.addEventListener('click', renderShilMulGaDropdown);
+      shilInput.addEventListener('input', renderShilMulGaDropdown);
+      shilInput.addEventListener('blur', function() {
+        setTimeout(function() {
+          if (shilDropdown) shilDropdown.style.display = 'none';
+        }, 200);
+      });
+    }
 
     // 초기 데이터 로드
     loadShilMulGaData();

@@ -131,7 +131,6 @@ function getShilMulGaMapJson() {
 function getShilMulGaMap() {
   const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
 
-  // 1. '쉴물가' 키워드가 들어간 탭 스마트 탐색
   let sheet = ss.getSheetByName("쉴물가이름");
   if (!sheet) sheet = ss.getSheetByName("쉴물가 이름");
   if (!sheet) sheet = ss.getSheetByName("쉴물가");
@@ -144,70 +143,55 @@ function getShilMulGaMap() {
   const values = sheet.getDataRange().getValues();
   if (!values || values.length === 0) return {};
 
-  const result = {
-    "1초장": [], "2초장": [], "3초장": [], "2/3초장": [], "4초장": [], "5초장": [], "6초장": []
-  };
+  const result = {};
 
-  // 초장 키 정규화 함수
   function normalizeChoJang(str) {
     const clean = String(str).replace(/\s+/g, '');
     const m = clean.match(/([1-6](\/[2-3])?초장)/);
     return m ? m[1] : null;
   }
 
-  // A. 열(Column) 기반 가로형 탐색 (상단 1~3행 내에 초장명이 있는 경우)
-  const colChoJangMap = {};
-  for (let r = 0; r < Math.min(values.length, 3); r++) {
+  // 1. 헤더 행 스캔 (상단 1~5행 중 어디에 초장이 있는지 위치 파악)
+  const choColIndexes = {};
+  for (let r = 0; r < Math.min(values.length, 5); r++) {
     for (let c = 0; c < values[r].length; c++) {
       const choKey = normalizeChoJang(values[r][c]);
       if (choKey) {
-        colChoJangMap[c] = choKey;
+        choColIndexes[c] = choKey;
       }
     }
   }
 
-  const hasColMap = Object.keys(colChoJangMap).length > 0;
-  if (hasColMap) {
-    for (let c in colChoJangMap) {
-      const choKey = colChoJangMap[c];
+  if (Object.keys(choColIndexes).length > 0) {
+    // 가로형 열(Column) 구조: 헤더 아래에 있는 모든 행 데이터 수집
+    for (let cStr in choColIndexes) {
+      const c = Number(cStr);
+      const choKey = choColIndexes[c];
+      if (!result[choKey]) result[choKey] = [];
+
       for (let r = 0; r < values.length; r++) {
         const val = String(values[r][c]).trim();
-        const isChoHeader = normalizeChoJang(val);
-        // 초장 헤더 제목이 아닌 실제 쉴물가 이름만 추가
-        if (val && !isChoHeader && val.length > 0) {
-          if (!result[choKey]) result[choKey] = [];
+        const isHeader = normalizeChoJang(val);
+        if (val && !isHeader && val !== "-" && val !== "없음") {
           if (!result[choKey].includes(val)) {
             result[choKey].push(val);
           }
         }
       }
     }
-  }
-
-  // B. 행(Row) 기반 세로형 또는 자유 스캔 (A열에 초장, B열에 쉴물가 이름 등)
-  for (let r = 0; r < values.length; r++) {
-    for (let c = 0; c < values[r].length; c++) {
-      const cellVal = String(values[r][c]).trim();
-      if (!cellVal) continue;
-
-      // 셀 자체가 '5초장' 등인 경우 다음 옆 셀을 쉴물가 이름으로 간주
-      const choKey = normalizeChoJang(cellVal);
-      if (choKey && c + 1 < values[r].length) {
-        const nextVal = String(values[r][c + 1]).trim();
-        if (nextVal && !normalizeChoJang(nextVal)) {
+  } else {
+    // 세로형 구조: A열 초장, B열 쉴물가
+    for (let r = 0; r < values.length; r++) {
+      for (let c = 0; c < values[r].length; c++) {
+        const cellVal = String(values[r][c]).trim();
+        const choKey = normalizeChoJang(cellVal);
+        if (choKey) {
           if (!result[choKey]) result[choKey] = [];
-          if (!result[choKey].includes(nextVal)) {
-            result[choKey].push(nextVal);
-          }
-        }
-      }
-      // "5초장 관악1쉴물가" 복합 형태인 경우
-      if (choKey && cellVal.length > choKey.length) {
-        const namePart = cellVal.replace(/^[1-6](\/[2-3])?초장\s*/, '').trim();
-        if (namePart) {
-          if (!result[choKey]) result[choKey] = [];
-          if (!result[choKey].includes(namePart)) {
-            result[choKey].push(namePart);
+          for (let c2 = c + 1; c2 < values[r].length; c2++) {
+            const val = String(values[r][c2]).trim();
+            if (val && !normalizeChoJang(val) && !result[choKey].includes(val)) {
+              result[choKey].push(val);
+            }
           }
         }
       }
