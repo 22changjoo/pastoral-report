@@ -433,6 +433,12 @@
       .topbar-left h1 { font-size: 14px; }
       .user-badge { display: none; }
       .detail-grid { grid-template-columns: 1fr; }
+      .stats-grid { gap: 8px; }
+      .stat-card { padding: 10px 12px; }
+      .stat-label { font-size: 12px; white-space: nowrap; }
+      .stat-value { font-size: 22px; }
+      .stat-sub { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .click-hint { font-size: 9px; padding: 1px 4px; }
     }
   </style>
 </head>
@@ -470,14 +476,14 @@
       <!-- 통계 -->
       <div class="stats-grid" id="statsGrid">
         <div class="stat-card" id="cardMeetingChojangs">
-          <div class="stat-label">🌿 모임 실시 쉴물가</div>
+          <div class="stat-label">🌿 모임실시</div>
           <div class="stat-value" id="statMeetingCount">—</div>
-          <div class="stat-sub" id="statMeetingSub">선택 기간 모임 진행 쉴물가</div>
+          <div class="stat-sub" id="statMeetingSub">선택 기간 모임 진행</div>
         </div>
-        <div class="stat-card clickable-card" id="cardPrayerReports" onclick="togglePrayerFilter()" title="클릭 시 기도제목/특이사항이 있는 보고서만 모아봅니다">
-          <div class="stat-label">🙏 기도제목 · 특이사항 <span class="click-hint">클릭시 모아보기</span></div>
+        <div class="stat-card clickable-card" id="cardPrayerReports" onclick="togglePrayerFilter()" title="클릭 시 긴급돌봄 및 장기결석건 보고서만 모아봅니다">
+          <div class="stat-label">🚨 심방필요 <span class="click-hint">모아보기</span></div>
           <div class="stat-value" id="statPrayerCount">—</div>
-          <div class="stat-sub" id="statPrayerSub">돌봄·중보기도 필요 쉴물가</div>
+          <div class="stat-sub" id="statPrayerSub">긴급돌봄·장기결석</div>
         </div>
       </div>
 
@@ -601,7 +607,31 @@
       }
     }
 
-    // ── 스마트 필터 (기도제목/특이사항 모아보기) ──
+    // ── 긴급 심방/돌봄 및 장기결석 키워드 선별 ──
+    const CARE_KEYWORDS = [
+      // 질병 / 의료 / 사고
+      '입원', '수술', '병환', '투병', '암', '사고', '다침', '응급', '치료',
+      // 사별 / 장례
+      '사별', '장례', '소천', '상가', '부고', '별세',
+      // 정신건강 / 위기 / 재정 / 기타 긴급
+      '공황', '우울', '위기', '긴급', '파산', '채무', '가정사', '이혼', '가족 갈등', '가족갈등',
+      // 장기 불참 / 장기 결석
+      '장기', '결석', '장기불참', '장기결석', '오래', '연락 안', '연락안', '안 나옴', '안나옴', '쉬고', '쉬는'
+    ];
+
+    function isCareNeededReport(r) {
+      if (!r) return false;
+      const text = [
+        r.prayerRequest || '',
+        r.absentees || '',
+        r.evaluation || ''
+      ].join(' ');
+
+      if (!text.trim()) return false;
+      return CARE_KEYWORDS.some(kw => text.includes(kw));
+    }
+
+    // ── 스마트 필터 (심방필요 모아보기) ──
     let isPrayerFilterActive = false;
 
     function togglePrayerFilter() {
@@ -622,27 +652,25 @@
         reports.map(r => (r.shilMulGa || '').trim()).filter(Boolean)
       );
 
-      // 2. 기도제목 또는 모임 평가/건의가 적힌 유니크 쉴물가 개수
-      const prayerShilMulGaSet = new Set();
+      // 2. 긴급 심방/돌봄 및 장기결석 키워드가 감지된 유니크 쉴물가 개수
+      const careShilMulGaSet = new Set();
       reports.forEach(r => {
-        const hasPrayer = r.prayerRequest && r.prayerRequest.trim() && r.prayerRequest !== '없음';
-        const hasEval = r.evaluation && r.evaluation.trim() && r.evaluation !== '없음';
-        if (hasPrayer || hasEval) {
+        if (isCareNeededReport(r)) {
           if (r.shilMulGa && r.shilMulGa.trim()) {
-            prayerShilMulGaSet.add(r.shilMulGa.trim());
+            careShilMulGaSet.add(r.shilMulGa.trim());
           }
         }
       });
 
       const meetingCount = meetingShilMulGaSet.size;
-      const prayerCount = prayerShilMulGaSet.size;
+      const careCount = careShilMulGaSet.size;
 
       document.getElementById('statMeetingCount').textContent = `${meetingCount}곳`;
       const scopeLabel = choJangFilter ? choJangFilter : '전체';
       document.getElementById('statMeetingSub').textContent = `${scopeLabel} 모임 실시`;
 
-      document.getElementById('statPrayerCount').textContent = `${prayerCount}곳`;
-      document.getElementById('statPrayerSub').textContent = isPrayerFilterActive ? '🙏 모아보기 필터 적용중' : '돌봄·중보기도 필요';
+      document.getElementById('statPrayerCount').textContent = `${careCount}곳`;
+      document.getElementById('statPrayerSub').textContent = isPrayerFilterActive ? '🚨 모아보기 적용중' : '긴급돌봄·장기결석';
     }
 
     // ── 날짜 문자열을 로컬 Date 객체로 파싱 (형식 무관) ──
@@ -685,13 +713,9 @@
       // 1. 초장 및 날짜 조건 기준 통계 집계
       renderStats(filtered, choJang);
 
-      // 2. 기도제목 모아보기 버튼 활성화 시 추가 필터링
+      // 2. 심방필요 모아보기 버튼 활성화 시 추가 필터링
       if (isPrayerFilterActive) {
-        filtered = filtered.filter(r => {
-          const hasPrayer = r.prayerRequest && r.prayerRequest.trim() && r.prayerRequest !== '없음';
-          const hasEval = r.evaluation && r.evaluation.trim() && r.evaluation !== '없음';
-          return hasPrayer || hasEval;
-        });
+        filtered = filtered.filter(r => isCareNeededReport(r));
       }
 
       renderReports(filtered);
