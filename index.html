@@ -423,28 +423,44 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // 구글 시트에서 로드될 실시간 초장별 쉴물가 데이터 맵
-    let shilMulGaMap = {};
+    // 0.001초 즉시 반응을 위한 캐시 키
+    const CACHE_KEY = 'SHILMULGA_DATA_CACHE_V2';
+
+    // 캐시된 데이터 즉시 로드 (0초 반응)
+    function getInitialShilMulGaMap() {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+      return {};
+    }
+
+    let shilMulGaMap = getInitialShilMulGaMap();
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQjw9EIe9nbpmBXNl67vX03nFXyBVo4TYevBAsXNagpduVIr4BRN3_jANcj4DbfYqfyw/exec';
 
-    // 백엔드(구글 시트 '쉴물가이름' 탭)에서 초장별 쉴물가 목록 불러오기
+    // 데이터 저장 및 화면 반영 함수
+    function applyAndCacheShilMulGaData(data) {
+      if (data && Object.keys(data).length > 0) {
+        shilMulGaMap = data;
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+        } catch (e) {}
+        updateShilMulGaOptions();
+      }
+    }
+
+    // 백엔드(구글 시트 '쉴물가이름' 탭)에서 초장별 쉴물가 목록 사전 백그라운드 로드
     function loadShilMulGaData() {
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
-          .withSuccessHandler(function(data) {
-            if (data && Object.keys(data).length > 0) {
-              shilMulGaMap = data;
-              updateShilMulGaOptions();
-            }
-          })
+          .withSuccessHandler(applyAndCacheShilMulGaData)
           .getShilMulGaMap();
       } else {
         const callbackName = 'onShilMulGaLoaded_' + Math.floor(Math.random() * 100000);
         window[callbackName] = function(resData) {
           try { delete window[callbackName]; } catch(e) {}
           if (resData && resData.success && resData.data) {
-            shilMulGaMap = resData.data;
-            updateShilMulGaOptions();
+            applyAndCacheShilMulGaData(resData.data);
           }
         };
         const script = document.createElement('script');
@@ -454,8 +470,7 @@
             .then(res => res.json())
             .then(resData => {
               if (resData && resData.success && resData.data) {
-                shilMulGaMap = resData.data;
-                updateShilMulGaOptions();
+                applyAndCacheShilMulGaData(resData.data);
               }
             }).catch(function(e){ console.log(e); });
         };
