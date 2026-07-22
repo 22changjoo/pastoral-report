@@ -126,77 +126,98 @@ function getShilMulGaMapJson() {
 }
 
 /**
- * 구글 스프레드시트의 '쉴물가이름' 탭에서 데이터를 추출하여 초장별 쉴물가 목록 맵 반환
+ * 구글 스프레드시트의 '쉴물가이름' 탭에서 데이터를 추출하여 초장별 쉴물가 목록 맵 반환 (모든 양식 자동 파싱)
  */
 function getShilMulGaMap() {
   const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-  const sheet = ss.getSheetByName("쉴물가이름");
+
+  // 1. '쉴물가' 키워드가 들어간 탭 스마트 탐색
+  let sheet = ss.getSheetByName("쉴물가이름");
+  if (!sheet) sheet = ss.getSheetByName("쉴물가 이름");
+  if (!sheet) sheet = ss.getSheetByName("쉴물가");
   if (!sheet) {
-    return {};
+    const sheets = ss.getSheets();
+    sheet = sheets.find(s => s.getName().includes("쉴물가") || s.getName().includes("이름"));
   }
+  if (!sheet) return {};
 
   const values = sheet.getDataRange().getValues();
   if (!values || values.length === 0) return {};
 
-  const result = {};
-  const header = values[0].map(v => String(v).trim());
+  const result = {
+    "1초장": [], "2초장": [], "3초장": [], "2/3초장": [], "4초장": [], "5초장": [], "6초장": []
+  };
 
-  // 1. 가로형 헤더 구조 체크 (예: 1행이 '4초장', '5초장', '6초장' 등)
-  const isHorizontal = header.some(h => h.match(/\d+초장/));
+  // 초장 키 정규화 함수
+  function normalizeChoJang(str) {
+    const clean = String(str).replace(/\s+/g, '');
+    const m = clean.match(/([1-6](\/[2-3])?초장)/);
+    return m ? m[1] : null;
+  }
 
-  if (isHorizontal) {
-    header.forEach((colName, colIdx) => {
-      const matched = colName.match(/\d+초장/);
-      if (matched) {
-        const choJangKey = matched[0];
-        if (!result[choJangKey]) result[choJangKey] = [];
+  // A. 열(Column) 기반 가로형 탐색 (상단 1~3행 내에 초장명이 있는 경우)
+  const colChoJangMap = {};
+  for (let r = 0; r < Math.min(values.length, 3); r++) {
+    for (let c = 0; c < values[r].length; c++) {
+      const choKey = normalizeChoJang(values[r][c]);
+      if (choKey) {
+        colChoJangMap[c] = choKey;
+      }
+    }
+  }
 
-        // 1번 행부터 아래로 쉴물가 목록 수집
-        for (let r = 1; r < values.length; r++) {
-          const val = String(values[r][colIdx]).trim();
-          if (val && !val.match(/^\d+초장$/) && !result[choJangKey].includes(val)) {
-            result[choJangKey].push(val);
+  const hasColMap = Object.keys(colChoJangMap).length > 0;
+  if (hasColMap) {
+    for (let c in colChoJangMap) {
+      const choKey = colChoJangMap[c];
+      for (let r = 0; r < values.length; r++) {
+        const val = String(values[r][c]).trim();
+        const isChoHeader = normalizeChoJang(val);
+        // 초장 헤더 제목이 아닌 실제 쉴물가 이름만 추가
+        if (val && !isChoHeader && val.length > 0) {
+          if (!result[choKey]) result[choKey] = [];
+          if (!result[choKey].includes(val)) {
+            result[choKey].push(val);
           }
         }
       }
-    });
-    return result;
-  }
-
-  // 2. 세로형 구조 체크 (1행이 '초장', '쉴물가이름' 컬럼)
-  const choJangColIdx = header.findIndex(h => h.includes('초장') && !h.match(/^\d+초장$/));
-  const shilMulGaColIdx = header.findIndex(h => h.includes('쉴물가') || h.includes('이름') || h.includes('목자'));
-
-  if (choJangColIdx !== -1 && shilMulGaColIdx !== -1 && choJangColIdx !== shilMulGaColIdx) {
-    for (let i = 1; i < values.length; i++) {
-      const choJang = String(values[i][choJangColIdx]).trim();
-      const shilMulGa = String(values[i][shilMulGaColIdx]).trim();
-      if (choJang && shilMulGa && !shilMulGa.match(/^\d+초장$/)) {
-        if (!result[choJang]) result[choJang] = [];
-        if (!result[choJang].includes(shilMulGa)) {
-          result[choJang].push(shilMulGa);
-        }
-      }
     }
-    return result;
   }
 
-  // 3. 기타 자유 형식 스캔 (1행 스킵)
-  for (let r = 1; r < values.length; r++) {
+  // B. 행(Row) 기반 세로형 또는 자유 스캔 (A열에 초장, B열에 쉴물가 이름 등)
+  for (let r = 0; r < values.length; r++) {
     for (let c = 0; c < values[r].length; c++) {
-      const val = String(values[r][c]).trim();
-      if (!val) continue;
-      const m = val.match(/(\d+초장)/);
-      if (m) {
-        const cho = m[1];
-        const namePart = val.replace(cho, '').trim();
-        if (namePart && !namePart.match(/^\d+초장$/)) {
-          if (!result[cho]) result[cho] = [];
-          if (!result[cho].includes(namePart)) result[cho].push(namePart);
+      const cellVal = String(values[r][c]).trim();
+      if (!cellVal) continue;
+
+      // 셀 자체가 '5초장' 등인 경우 다음 옆 셀을 쉴물가 이름으로 간주
+      const choKey = normalizeChoJang(cellVal);
+      if (choKey && c + 1 < values[r].length) {
+        const nextVal = String(values[r][c + 1]).trim();
+        if (nextVal && !normalizeChoJang(nextVal)) {
+          if (!result[choKey]) result[choKey] = [];
+          if (!result[choKey].includes(nextVal)) {
+            result[choKey].push(nextVal);
+          }
+        }
+      }
+      // "5초장 관악1쉴물가" 복합 형태인 경우
+      if (choKey && cellVal.length > choKey.length) {
+        const namePart = cellVal.replace(/^[1-6](\/[2-3])?초장\s*/, '').trim();
+        if (namePart) {
+          if (!result[choKey]) result[choKey] = [];
+          if (!result[choKey].includes(namePart)) {
+            result[choKey].push(namePart);
+          }
         }
       }
     }
   }
+
+  // 빈 항목 정리
+  Object.keys(result).forEach(k => {
+    if (result[k].length === 0) delete result[k];
+  });
 
   return result;
 }
