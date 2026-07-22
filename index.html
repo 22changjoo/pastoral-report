@@ -427,17 +427,11 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // 2중 안전 백업 데이터 (시트 API 연결 실패 시에도 100% 무조건 동작 보장)
-    const DEFAULT_SHILMULGA_MAP = {
-      "4초장": ["가락1쉴물가", "가락2쉴물가", "가락3쉴물가", "가락4쉴물가", "강남1쉴물가", "강남2쉴물가", "송파1쉴물가", "송파2쉴물가", "송파3쉴물가"],
-      "5초장": ["관악1쉴물가", "관악2쉴물가", "관악3쉴물가", "관악4쉴물가", "방배1쉴물가", "방배2쉴물가", "강서/김포쉴물가", "서초1쉴물가", "서초2쉴물가", "동작1쉴물가", "동작2쉴물가"],
-      "6초장": ["구로1쉴물가", "구로2쉴물가", "구로3쉴물가", "영등포1쉴물가", "영등포2쉴물가", "마포1쉴물가", "마포2쉴물가", "용산1쉴물가"]
-    };
-
-    let shilMulGaMap = JSON.parse(JSON.stringify(DEFAULT_SHILMULGA_MAP));
+    // 구글 시트에서 로드될 실시간 초장별 쉴물가 데이터 맵
+    let shilMulGaMap = {};
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQjw9EIe9nbpmBXNl67vX03nFXyBVo4TYevBAsXNagpduVIr4BRN3_jANcj4DbfYqfyw/exec';
 
-    // 백엔드에서 초장별 쉴물가 목록 불러오기 (JSONP 안전 로딩)
+    // 백엔드(구글 시트 '쉴물가이름' 탭)에서 초장별 쉴물가 목록 불러오기
     function loadShilMulGaData() {
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
@@ -452,7 +446,7 @@
         const callbackName = 'onShilMulGaLoaded_' + Math.floor(Math.random() * 100000);
         window[callbackName] = function(resData) {
           try { delete window[callbackName]; } catch(e) {}
-          if (resData && resData.success && resData.data && Object.keys(resData.data).length > 0) {
+          if (resData && resData.success && resData.data) {
             shilMulGaMap = resData.data;
             updateShilMulGaOptions();
           }
@@ -463,7 +457,7 @@
           fetch(SCRIPT_URL + '?action=getShilMulGaMap')
             .then(res => res.json())
             .then(resData => {
-              if (resData && resData.success && resData.data && Object.keys(resData.data).length > 0) {
+              if (resData && resData.success && resData.data) {
                 shilMulGaMap = resData.data;
                 updateShilMulGaOptions();
               }
@@ -481,7 +475,7 @@
       const selectEl = document.getElementById('shilMulGaSelect');
       if (dropdown) dropdown.style.display = 'none';
 
-      const list = shilMulGaMap[choJangVal] || DEFAULT_SHILMULGA_MAP[choJangVal] || [];
+      const list = shilMulGaMap[choJangVal] || [];
 
       // 드롭다운 선택상자(<select>) 업데이트
       if (selectEl) {
@@ -501,12 +495,18 @@
 
       if (list.length > 0) {
         if (hint) {
-          const sampleStr = list.slice(0, 3).join(', ') + (list.length > 3 ? '...' : '');
-          hint.textContent = `💡 ${choJangVal} 쉴물가 목록(${list.length}개)이 연결되었습니다. (예: ${sampleStr})`;
+          hint.textContent = `💡 ${choJangVal} 쉴물가 목록(${list.length}개)이 시트에서 연결되었습니다.`;
           hint.style.display = 'block';
         }
       } else {
-        if (hint) hint.style.display = 'none';
+        if (['4초장', '5초장', '6초장'].includes(choJangVal)) {
+          if (hint) {
+            hint.textContent = `💡 ${choJangVal}를 선택하셨습니다. (시트에서 목록을 불러오는 중이거나 직접 입력 가능합니다)`;
+            hint.style.display = 'block';
+          }
+        } else {
+          if (hint) hint.style.display = 'none';
+        }
       }
     }
 
