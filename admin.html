@@ -260,14 +260,12 @@
     }
 
     .filter-save-default {
-      padding: 6px 10px;
+      padding: 0 10px;
       background: #FFF8E1;
       color: #E65100;
       border: 1.2px solid #FFE082;
       border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      font-family: inherit;
+      font-size: 15px;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.15s;
@@ -275,11 +273,13 @@
       height: 40px;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
     }
 
     .filter-save-default:hover {
       background: #FFECB3;
       border-color: #FFCA28;
+      transform: scale(1.05);
     }
 
     /* ── 보고서 목록 ── */
@@ -465,7 +465,7 @@
                 <option value="5초장">5초장</option>
                 <option value="6초장">6초장</option>
               </select>
-              <button class="filter-save-default" onclick="saveDefaultChoJang()" title="선택한 초장을 첫 화면 기본보기로 설정합니다">기본보기설정</button>
+              <button class="filter-save-default" onclick="saveDefaultChoJang()" title="선택한 초장을 첫 화면으로 저장">📌</button>
             </div>
           </div>
         </div>
@@ -642,7 +642,7 @@
       const choJang = document.getElementById('filterChoJang').value;
       localStorage.setItem('defaultChoJang', choJang);
       const displayChoJang = choJang ? choJang : '전체 초장';
-      alert(`'${displayChoJang}'(이)가 첫 화면 기본보기로 설정되었습니다.`);
+      alert(`'${displayChoJang}'(이)가 첫 화면으로 저장되었습니다.`);
     }
 
     // 장소 문자열 정제 및 교실 자동 추가
