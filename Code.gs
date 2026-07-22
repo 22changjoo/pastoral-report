@@ -126,16 +126,9 @@ function getShilMulGaMapJson() {
 }
 
 /**
- * 구글 스프레드시트의 '쉴물가이름' 탭에서 데이터를 추출하여 초장별 쉴물가 목록 맵 반환 (100% 안전 보장)
+ * 구글 스프레드시트의 '쉴물가이름' 탭에서 데이터를 정밀 추출하여 초장별 쉴물가 목록 맵 반환
  */
 function getShilMulGaMap() {
-  // 백업 기본 쉴물가 목록 (시트 로드 실패 시에도 100% 동작 보장)
-  const defaultMap = {
-    "4초장": ["가락1쉴물가", "가락2쉴물가", "가락3쉴물가", "강남1쉴물가", "강남2쉴물가", "송파1쉴물가", "송파2쉴물가", "송파3쉴물가"],
-    "5초장": ["관악1쉴물가", "관악2쉴물가", "관악3쉴물가", "방배1쉴물가", "방배2쉴물가", "강서/김포쉴물가", "서초1쉴물가", "서초2쉴물가", "동작1쉴물가", "동작2쉴물가"],
-    "6초장": ["구로1쉴물가", "구로2쉴물가", "영등포1쉴물가", "영등포2쉴물가", "마포1쉴물가", "마포2쉴물가", "용산1쉴물가"]
-  };
-
   try {
     const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
     let sheet = ss.getSheetByName("쉴물가이름") || ss.getSheetByName("쉴물가 이름") || ss.getSheetByName("쉴물가");
@@ -143,74 +136,70 @@ function getShilMulGaMap() {
       const sheets = ss.getSheets();
       sheet = sheets.find(s => s.getName().includes("쉴물가") || s.getName().includes("이름"));
     }
-    if (!sheet) return defaultMap;
+    if (!sheet) return {};
 
     const values = sheet.getDataRange().getValues();
-    if (!values || values.length === 0) return defaultMap;
+    if (!values || values.length === 0) return {};
 
     const result = {};
 
-    function normalizeChoJang(str) {
-      const clean = String(str).replace(/\s+/g, '');
-      const m = clean.match(/([1-6](\/[2-3])?초장)/);
-      return m ? m[1] : null;
-    }
+    // 1. 가로 열(Column) 구조 탐색 (상단 1~5행 내에 '4초장', '5초장', '6초장' 헤더가 있는 경우)
+    let colToChoJang = {}; // 예: { 0: "4초장", 1: "5초장", 2: "6초장" }
+    let headerRowIdx = -1;
 
-    // 1. 헤더 행 스캔
-    const choColIndexes = {};
     for (let r = 0; r < Math.min(values.length, 5); r++) {
       for (let c = 0; c < values[r].length; c++) {
-        const choKey = normalizeChoJang(values[r][c]);
-        if (choKey) {
-          choColIndexes[c] = choKey;
+        const val = String(values[r][c]).trim();
+        const m = val.match(/([1-6](\/[2-3])?초장)/);
+        if (m) {
+          colToChoJang[c] = m[1];
+          headerRowIdx = r;
         }
       }
+      if (Object.keys(colToChoJang).length > 0) break;
     }
 
-    if (Object.keys(choColIndexes).length > 0) {
-      for (let cStr in choColIndexes) {
+    if (Object.keys(colToChoJang).length > 0) {
+      for (let cStr in colToChoJang) {
         const c = Number(cStr);
-        const choKey = choColIndexes[c];
-        if (!result[choKey]) result[choKey] = [];
+        const choKey = colToChoJang[c];
+        result[choKey] = [];
 
-        for (let r = 0; r < values.length; r++) {
+        for (let r = headerRowIdx + 1; r < values.length; r++) {
           const val = String(values[r][c]).trim();
-          const isHeader = normalizeChoJang(val);
-          if (val && !isHeader && val !== "-" && val !== "없음") {
+          // 초장 이름 헤더나 빈 값 스킵
+          if (val && !val.match(/^[1-6](\/[2-3])?초장$/)) {
             if (!result[choKey].includes(val)) {
               result[choKey].push(val);
             }
           }
         }
       }
-    } else {
-      for (let r = 0; r < values.length; r++) {
-        for (let c = 0; c < values[r].length; c++) {
-          const cellVal = String(values[r][c]).trim();
-          const choKey = normalizeChoJang(cellVal);
-          if (choKey) {
+      return result;
+    }
+
+    // 2. 세로 행(Row) 구조 탐색 (A열: 초장, B열: 쉴물가이름)
+    for (let r = 0; r < values.length; r++) {
+      const rowVals = values[r].map(v => String(v).trim()).filter(Boolean);
+      if (rowVals.length >= 2) {
+        const choM = rowVals[0].match(/([1-6](\/[2-3])?초장)/);
+        if (choM) {
+          const choKey = choM[1];
+          const shilVal = rowVals[1];
+          if (shilVal && !shilVal.match(/^[1-6](\/[2-3])?초장$/)) {
             if (!result[choKey]) result[choKey] = [];
-            for (let c2 = c + 1; c2 < values[r].length; c2++) {
-              const val = String(values[r][c2]).trim();
-              if (val && !normalizeChoJang(val) && !result[choKey].includes(val)) {
-                result[choKey].push(val);
-              }
+            if (!result[choKey].includes(shilVal)) {
+              result[choKey].push(shilVal);
             }
           }
         }
       }
     }
 
-    // 시트에서 수집된 데이터와 defaultMap 병합
-    Object.keys(defaultMap).forEach(key => {
-      if (!result[key] || result[key].length === 0) {
-        result[key] = defaultMap[key];
-      }
-    });
-
     return result;
   } catch (err) {
-    return defaultMap;
+    Logger.log("getShilMulGaMap 오류: " + err.message);
+    return {};
   }
 }
 

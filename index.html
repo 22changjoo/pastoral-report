@@ -501,7 +501,8 @@
 
       if (list.length > 0) {
         if (hint) {
-          hint.textContent = `💡 ${choJangVal} 쉴물가 목록(${list.length}개)이 연동되었습니다. 위 선택창에서 클릭하시거나 아래에 이름을 입력하세요.`;
+          const sampleStr = list.slice(0, 3).join(', ') + (list.length > 3 ? '...' : '');
+          hint.textContent = `💡 ${choJangVal} 쉴물가 목록(${list.length}개)이 연결되었습니다. (예: ${sampleStr})`;
           hint.style.display = 'block';
         }
       } else {
