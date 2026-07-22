@@ -340,13 +340,9 @@
         <!-- 쉴물가 -->
         <div class="form-group form-group-relative">
           <label for="shilMulGa">쉴물가(또는 목자이름) <span class="required">*</span></label>
-          <!-- 4,5,6초장 전용 드롭다운 선택 상자 (기본 숨김) -->
-          <select id="shilMulGaSelect" style="display:none; margin-bottom: 8px; background: #e8f5e9; border-color: #2E7D32; font-weight: 600;">
-            <option value="">▼ 쉴물가를 선택하거나 아래에 직접 입력하세요</option>
-          </select>
           <input type="text" id="shilMulGa" placeholder="예: ○○○ 쉴물가" autocomplete="off" required />
           <div id="shilMulGaDropdown" class="shilmulga-dropdown"></div>
-          <div class="hint" id="shilMulGaHint" style="display:none; color: #2E7D32;">💡 위 선택창에서 선택하시거나, 이름을 입력하시면 연관 쉴물가가 표시됩니다.</div>
+          <div class="hint" id="shilMulGaHint" style="display:none; color: #2E7D32;">💡 클릭하거나 이름(예: 관악)을 입력하면 연관 쉴물가가 자동 표시됩니다.</div>
         </div>
 
         <!-- 모임 날짜 -->
@@ -472,52 +468,25 @@
       const choJangVal = document.getElementById('choJang').value;
       const hint = document.getElementById('shilMulGaHint');
       const dropdown = document.getElementById('shilMulGaDropdown');
-      const selectEl = document.getElementById('shilMulGaSelect');
       if (dropdown) dropdown.style.display = 'none';
 
       const list = shilMulGaMap[choJangVal] || [];
 
-      // 드롭다운 선택상자(<select>) 업데이트
-      if (selectEl) {
-        selectEl.innerHTML = '<option value="">▼ 쉴물가를 선택하거나 아래에 직접 입력하세요</option>';
-        if (list.length > 0) {
-          list.forEach(item => {
-            const opt = document.createElement('option');
-            opt.value = item;
-            opt.textContent = item;
-            selectEl.appendChild(opt);
-          });
-          selectEl.style.display = 'block';
-        } else {
-          selectEl.style.display = 'none';
-        }
-      }
-
       if (list.length > 0) {
         if (hint) {
-          hint.textContent = `💡 ${choJangVal} 쉴물가 목록(${list.length}개)이 시트에서 연결되었습니다.`;
+          hint.textContent = `💡 ${choJangVal} 쉴물가 목록(${list.length}개)이 시트에서 연결되었습니다. 클릭하거나 입력하시면 추천됩니다.`;
           hint.style.display = 'block';
         }
       } else {
         if (['4초장', '5초장', '6초장'].includes(choJangVal)) {
           if (hint) {
-            hint.textContent = `💡 ${choJangVal}를 선택하셨습니다. (시트에서 목록을 불러오는 중이거나 직접 입력 가능합니다)`;
+            hint.textContent = `💡 ${choJangVal}를 선택하셨습니다. (이름을 입력하시면 연관 쉴물가가 자동 표시됩니다)`;
             hint.style.display = 'block';
           }
         } else {
           if (hint) hint.style.display = 'none';
         }
       }
-    }
-
-    // 드롭다운 선택창 변경 시 텍스트 입력창 자동 채움
-    const selectEl = document.getElementById('shilMulGaSelect');
-    if (selectEl) {
-      selectEl.addEventListener('change', function() {
-        if (this.value) {
-          document.getElementById('shilMulGa').value = this.value;
-        }
-      });
     }
 
     // 커스텀 드롭다운 리스트 렌더링 및 필터링 (텍스트 입력용)
