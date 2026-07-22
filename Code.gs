@@ -46,6 +46,9 @@ function doGet(e) {
   if (e && e.parameter && e.parameter.action === 'getReports') {
     return getReportsJson();
   }
+  if (e && e.parameter && e.parameter.action === 'getShilMulGaMap') {
+    return getShilMulGaMapJson();
+  }
   return HtmlService.createHtmlOutputFromFile("index")
     .setTitle("쉴물가 모임 보고서")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -106,6 +109,89 @@ function getReportsJson() {
     return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.message }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+/**
+ * '쉴물가이름' 탭에서 초장별 쉴물가 목록을 읽어 JSON으로 반환
+ */
+function getShilMulGaMapJson() {
+  try {
+    const mapData = getShilMulGaMap();
+    return ContentService.createTextOutput(JSON.stringify({ success: true, data: mapData }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * 구글 스프레드시트의 '쉴물가이름' 탭에서 데이터를 추출하여 초장별 쉴물가 목록 맵 반환
+ */
+function getShilMulGaMap() {
+  const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  const sheet = ss.getSheetByName("쉴물가이름");
+  if (!sheet) {
+    return {};
+  }
+
+  const values = sheet.getDataRange().getValues();
+  if (!values || values.length === 0) return {};
+
+  const result = {};
+
+  // 1. 컬럼 헤더 분석 (가로형 또는 세로형 구조)
+  const header = values[0].map(v => String(v).trim());
+  const choJangColIdx = header.findIndex(h => h.includes('초장') && !h.match(/^\d+초장$/));
+  const shilMulGaColIdx = header.findIndex(h => h.includes('쉴물가') || h.includes('이름') || h.includes('목자'));
+
+  if (choJangColIdx !== -1 && shilMulGaColIdx !== -1 && choJangColIdx !== shilMulGaColIdx) {
+    // 세로형 구조 (A열: 초장, B열: 쉴물가이름 등)
+    for (let i = 1; i < values.length; i++) {
+      const choJang = String(values[i][choJangColIdx]).trim();
+      const shilMulGa = String(values[i][shilMulGaColIdx]).trim();
+      if (choJang && shilMulGa) {
+        if (!result[choJang]) result[choJang] = [];
+        if (!result[choJang].includes(shilMulGa)) {
+          result[choJang].push(shilMulGa);
+        }
+      }
+    }
+  } else {
+    // 가로형 구조 (컬럼명이 '4초장', '5초장', '6초장' 등)
+    header.forEach((colName, colIdx) => {
+      const matchedChoJang = colName.match(/\d+초장/);
+      const keyName = matchedChoJang ? matchedChoJang[0] : colName;
+      if (keyName && (keyName.includes('초장') || matchedChoJang)) {
+        if (!result[keyName]) result[keyName] = [];
+        for (let rowIdx = 1; rowIdx < values.length; rowIdx++) {
+          const val = String(values[rowIdx][colIdx]).trim();
+          if (val && !result[keyName].includes(val)) {
+            result[keyName].push(val);
+          }
+        }
+      }
+    });
+
+    // 헤더 행이 없는 무헤더 목록 스캔 또는 복합 셀 스캔
+    for (let r = 0; r < values.length; r++) {
+      for (let c = 0; c < values[r].length; c++) {
+        const val = String(values[r][c]).trim();
+        if (!val) continue;
+        const m = val.match(/(\d+초장)/);
+        if (m) {
+          const cho = m[1];
+          const namePart = val.replace(cho, '').trim();
+          if (namePart) {
+            if (!result[cho]) result[cho] = [];
+            if (!result[cho].includes(namePart)) result[cho].push(namePart);
+          }
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 /**

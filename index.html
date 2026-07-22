@@ -302,7 +302,9 @@
         <!-- 쉴물가 -->
         <div class="form-group">
           <label for="shilMulGa">쉴물가(또는 목자이름) <span class="required">*</span></label>
-          <input type="text" id="shilMulGa" placeholder="예: ○○○ 쉴물가" required />
+          <input type="text" id="shilMulGa" list="shilMulGaList" placeholder="예: ○○○ 쉴물가" autocomplete="off" required />
+          <datalist id="shilMulGaList"></datalist>
+          <div class="hint" id="shilMulGaHint" style="display:none; color: #2E7D32;">4·5·6초장의 경우 클릭하거나 이름을 입력하면 연관 쉴물가가 표시됩니다.</div>
         </div>
 
         <!-- 모임 날짜 -->
@@ -383,6 +385,72 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    // 쉴물가 데이터 맵 (초장별 쉴물가 목록)
+    let shilMulGaMap = {};
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQjw9EIe9nbpmBXNl67vX03nFXyBVo4TYevBAsXNagpduVIr4BRN3_jANcj4DbfYqfyw/exec';
+
+    // 백엔드에서 초장별 쉴물가 목록 불러오기
+    function loadShilMulGaData() {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(data) {
+            shilMulGaMap = data || {};
+            updateShilMulGaOptions();
+          })
+          .getShilMulGaMap();
+      } else {
+        fetch(SCRIPT_URL + '?action=getShilMulGaMap')
+          .then(res => res.json())
+          .then(resData => {
+            if (resData && resData.success && resData.data) {
+              shilMulGaMap = resData.data;
+              updateShilMulGaOptions();
+            }
+          })
+          .catch(err => console.log('쉴물가 목록 로드 오류:', err));
+      }
+    }
+
+    // 초장 선택 변경에 따른 쉴물가 자동완성 리스트 갱신
+    function updateShilMulGaOptions() {
+      const choJangVal = document.getElementById('choJang').value;
+      const datalist = document.getElementById('shilMulGaList');
+      const hint = document.getElementById('shilMulGaHint');
+
+      datalist.innerHTML = '';
+
+      const list = shilMulGaMap[choJangVal] || [];
+
+      if (list.length > 0) {
+        list.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item;
+          datalist.appendChild(opt);
+        });
+
+        if (hint) {
+          hint.textContent = `💡 ${choJangVal} 쉴물가 목록(${list.length}개)이 연결되었습니다. 두 글자 이상 입력 시 자동완성됩니다.`;
+          hint.style.display = 'block';
+        }
+      } else {
+        if (['4초장', '5초장', '6초장'].includes(choJangVal)) {
+          if (hint) {
+            hint.textContent = `💡 ${choJangVal}를 선택하셨습니다. 이름을 입력하시면 연관 쉴물가가 자동 표시됩니다.`;
+            hint.style.display = 'block';
+          }
+        } else {
+          if (hint) hint.style.display = 'none';
+        }
+      }
+    }
+
+    document.getElementById('choJang').addEventListener('change', function() {
+      updateShilMulGaOptions();
+    });
+
+    // 초기 데이터 로드
+    loadShilMulGaData();
+
     // 입력 시 키보드에 가리지 않도록 스크롤
     document.addEventListener('focusin', function(e) {
       const el = e.target;
