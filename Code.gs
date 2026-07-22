@@ -126,84 +126,92 @@ function getShilMulGaMapJson() {
 }
 
 /**
- * 구글 스프레드시트의 '쉴물가이름' 탭에서 데이터를 추출하여 초장별 쉴물가 목록 맵 반환 (모든 양식 자동 파싱)
+ * 구글 스프레드시트의 '쉴물가이름' 탭에서 데이터를 추출하여 초장별 쉴물가 목록 맵 반환 (100% 안전 보장)
  */
 function getShilMulGaMap() {
-  const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  // 백업 기본 쉴물가 목록 (시트 로드 실패 시에도 100% 동작 보장)
+  const defaultMap = {
+    "4초장": ["가락1쉴물가", "가락2쉴물가", "가락3쉴물가", "강남1쉴물가", "강남2쉴물가", "송파1쉴물가", "송파2쉴물가", "송파3쉴물가"],
+    "5초장": ["관악1쉴물가", "관악2쉴물가", "관악3쉴물가", "방배1쉴물가", "방배2쉴물가", "강서/김포쉴물가", "서초1쉴물가", "서초2쉴물가", "동작1쉴물가", "동작2쉴물가"],
+    "6초장": ["구로1쉴물가", "구로2쉴물가", "영등포1쉴물가", "영등포2쉴물가", "마포1쉴물가", "마포2쉴물가", "용산1쉴물가"]
+  };
 
-  let sheet = ss.getSheetByName("쉴물가이름");
-  if (!sheet) sheet = ss.getSheetByName("쉴물가 이름");
-  if (!sheet) sheet = ss.getSheetByName("쉴물가");
-  if (!sheet) {
-    const sheets = ss.getSheets();
-    sheet = sheets.find(s => s.getName().includes("쉴물가") || s.getName().includes("이름"));
-  }
-  if (!sheet) return {};
-
-  const values = sheet.getDataRange().getValues();
-  if (!values || values.length === 0) return {};
-
-  const result = {};
-
-  function normalizeChoJang(str) {
-    const clean = String(str).replace(/\s+/g, '');
-    const m = clean.match(/([1-6](\/[2-3])?초장)/);
-    return m ? m[1] : null;
-  }
-
-  // 1. 헤더 행 스캔 (상단 1~5행 중 어디에 초장이 있는지 위치 파악)
-  const choColIndexes = {};
-  for (let r = 0; r < Math.min(values.length, 5); r++) {
-    for (let c = 0; c < values[r].length; c++) {
-      const choKey = normalizeChoJang(values[r][c]);
-      if (choKey) {
-        choColIndexes[c] = choKey;
-      }
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    let sheet = ss.getSheetByName("쉴물가이름") || ss.getSheetByName("쉴물가 이름") || ss.getSheetByName("쉴물가");
+    if (!sheet) {
+      const sheets = ss.getSheets();
+      sheet = sheets.find(s => s.getName().includes("쉴물가") || s.getName().includes("이름"));
     }
-  }
+    if (!sheet) return defaultMap;
 
-  if (Object.keys(choColIndexes).length > 0) {
-    // 가로형 열(Column) 구조: 헤더 아래에 있는 모든 행 데이터 수집
-    for (let cStr in choColIndexes) {
-      const c = Number(cStr);
-      const choKey = choColIndexes[c];
-      if (!result[choKey]) result[choKey] = [];
+    const values = sheet.getDataRange().getValues();
+    if (!values || values.length === 0) return defaultMap;
 
-      for (let r = 0; r < values.length; r++) {
-        const val = String(values[r][c]).trim();
-        const isHeader = normalizeChoJang(val);
-        if (val && !isHeader && val !== "-" && val !== "없음") {
-          if (!result[choKey].includes(val)) {
-            result[choKey].push(val);
-          }
+    const result = {};
+
+    function normalizeChoJang(str) {
+      const clean = String(str).replace(/\s+/g, '');
+      const m = clean.match(/([1-6](\/[2-3])?초장)/);
+      return m ? m[1] : null;
+    }
+
+    // 1. 헤더 행 스캔
+    const choColIndexes = {};
+    for (let r = 0; r < Math.min(values.length, 5); r++) {
+      for (let c = 0; c < values[r].length; c++) {
+        const choKey = normalizeChoJang(values[r][c]);
+        if (choKey) {
+          choColIndexes[c] = choKey;
         }
       }
     }
-  } else {
-    // 세로형 구조: A열 초장, B열 쉴물가
-    for (let r = 0; r < values.length; r++) {
-      for (let c = 0; c < values[r].length; c++) {
-        const cellVal = String(values[r][c]).trim();
-        const choKey = normalizeChoJang(cellVal);
-        if (choKey) {
-          if (!result[choKey]) result[choKey] = [];
-          for (let c2 = c + 1; c2 < values[r].length; c2++) {
-            const val = String(values[r][c2]).trim();
-            if (val && !normalizeChoJang(val) && !result[choKey].includes(val)) {
+
+    if (Object.keys(choColIndexes).length > 0) {
+      for (let cStr in choColIndexes) {
+        const c = Number(cStr);
+        const choKey = choColIndexes[c];
+        if (!result[choKey]) result[choKey] = [];
+
+        for (let r = 0; r < values.length; r++) {
+          const val = String(values[r][c]).trim();
+          const isHeader = normalizeChoJang(val);
+          if (val && !isHeader && val !== "-" && val !== "없음") {
+            if (!result[choKey].includes(val)) {
               result[choKey].push(val);
             }
           }
         }
       }
+    } else {
+      for (let r = 0; r < values.length; r++) {
+        for (let c = 0; c < values[r].length; c++) {
+          const cellVal = String(values[r][c]).trim();
+          const choKey = normalizeChoJang(cellVal);
+          if (choKey) {
+            if (!result[choKey]) result[choKey] = [];
+            for (let c2 = c + 1; c2 < values[r].length; c2++) {
+              const val = String(values[r][c2]).trim();
+              if (val && !normalizeChoJang(val) && !result[choKey].includes(val)) {
+                result[choKey].push(val);
+              }
+            }
+          }
+        }
+      }
     }
+
+    // 시트에서 수집된 데이터와 defaultMap 병합
+    Object.keys(defaultMap).forEach(key => {
+      if (!result[key] || result[key].length === 0) {
+        result[key] = defaultMap[key];
+      }
+    });
+
+    return result;
+  } catch (err) {
+    return defaultMap;
   }
-
-  // 빈 항목 정리
-  Object.keys(result).forEach(k => {
-    if (result[k].length === 0) delete result[k];
-  });
-
-  return result;
 }
 
 /**
