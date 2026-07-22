@@ -126,7 +126,7 @@ function getShilMulGaMapJson() {
 }
 
 /**
- * 구글 스프레드시트의 '쉴물가이름' 탭에서 데이터를 정밀 추출하여 초장별 쉴물가 목록 맵 반환
+ * 구글 스프레드시트 '쉴물가이름' 탭 (A열: 초장, B열: 쉴물가 이름) 파싱
  */
 function getShilMulGaMap() {
   try {
@@ -143,56 +143,33 @@ function getShilMulGaMap() {
 
     const result = {};
 
-    // 1. 가로 열(Column) 구조 탐색 (상단 1~5행 내에 '4초장', '5초장', '6초장' 헤더가 있는 경우)
-    let colToChoJang = {}; // 예: { 0: "4초장", 1: "5초장", 2: "6초장" }
-    let headerRowIdx = -1;
+    // 행 단위 스캔 (A열: 초장, B열: 쉴물가 이름)
+    for (let i = 0; i < values.length; i++) {
+      const row = values[i];
+      if (!row || row.length < 2) continue;
 
-    for (let r = 0; r < Math.min(values.length, 5); r++) {
-      for (let c = 0; c < values[r].length; c++) {
-        const val = String(values[r][c]).trim();
-        const m = val.match(/([1-6](\/[2-3])?초장)/);
-        if (m) {
-          colToChoJang[c] = m[1];
-          headerRowIdx = r;
-        }
+      const rawChoJang = String(row[0]).trim();
+      const rawShilMulGa = String(row[1]).trim();
+
+      if (!rawChoJang || !rawShilMulGa) continue;
+
+      // 헤더 행 (예: A1="초장", B1="쉴물가이름") 스킵
+      if (rawChoJang.includes("초장") && !rawChoJang.match(/\d/)) continue;
+      if (rawShilMulGa.includes("쉴물가") && rawShilMulGa.includes("이름")) continue;
+
+      // 초장 키 정규화 (예: " 5초장 " -> "5초장", "2/3 초장" -> "2/3초장")
+      let choKey = rawChoJang;
+      const m = rawChoJang.match(/([1-6](\/[2-3])?초장)/);
+      if (m) {
+        choKey = m[1];
       }
-      if (Object.keys(colToChoJang).length > 0) break;
-    }
 
-    if (Object.keys(colToChoJang).length > 0) {
-      for (let cStr in colToChoJang) {
-        const c = Number(cStr);
-        const choKey = colToChoJang[c];
+      if (!result[choKey]) {
         result[choKey] = [];
-
-        for (let r = headerRowIdx + 1; r < values.length; r++) {
-          const val = String(values[r][c]).trim();
-          // 초장 이름 헤더나 빈 값 스킵
-          if (val && !val.match(/^[1-6](\/[2-3])?초장$/)) {
-            if (!result[choKey].includes(val)) {
-              result[choKey].push(val);
-            }
-          }
-        }
       }
-      return result;
-    }
 
-    // 2. 세로 행(Row) 구조 탐색 (A열: 초장, B열: 쉴물가이름)
-    for (let r = 0; r < values.length; r++) {
-      const rowVals = values[r].map(v => String(v).trim()).filter(Boolean);
-      if (rowVals.length >= 2) {
-        const choM = rowVals[0].match(/([1-6](\/[2-3])?초장)/);
-        if (choM) {
-          const choKey = choM[1];
-          const shilVal = rowVals[1];
-          if (shilVal && !shilVal.match(/^[1-6](\/[2-3])?초장$/)) {
-            if (!result[choKey]) result[choKey] = [];
-            if (!result[choKey].includes(shilVal)) {
-              result[choKey].push(shilVal);
-            }
-          }
-        }
+      if (!result[choKey].includes(rawShilMulGa)) {
+        result[choKey].push(rawShilMulGa);
       }
     }
 
