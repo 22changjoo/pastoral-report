@@ -347,6 +347,13 @@
       border: 1px solid #FFCDD2;
       flex-shrink: 0;
     }
+    .kw-highlight {
+      background-color: #FFE082;
+      color: #B71C1C;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
 
     .report-card-header {
       padding: 16px 20px;
@@ -646,6 +653,18 @@
       return CARE_KEYWORDS.some(kw => text.includes(kw));
     }
 
+    function highlightCareKeywords(str) {
+      if (!str) return '';
+      let text = String(str);
+      CARE_KEYWORDS.forEach(kw => {
+        if (!kw) return;
+        const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const reg = new RegExp(escaped, 'g');
+        text = text.replace(reg, `<mark class="kw-highlight">${kw}</mark>`);
+      });
+      return text;
+    }
+
     // ── 스마트 필터 (심방필요 모아보기) ──
     let isPrayerFilterActive = false;
 
@@ -853,7 +872,7 @@
               </div>
               <div class="detail-item">
                 <label>불참자 및 사유</label>
-                <p>${r.absentees || '없음'}</p>
+                <p>${r.absentees ? highlightCareKeywords(r.absentees) : '없음'}</p>
               </div>
               <div class="detail-item full">
                 <label>모임 내용</label>
@@ -864,12 +883,12 @@
               ${r.evaluation ? `
               <div class="detail-item full">
                 <label>오늘 모임은 어땠나요?</label>
-                <p>${r.evaluation}</p>
+                <p>${highlightCareKeywords(r.evaluation)}</p>
               </div>` : ''}
               ${r.prayerRequest ? `
               <div class="detail-item full prayer">
                 <label>🙏 기도제목</label>
-                <p>${r.prayerRequest}</p>
+                <p>${highlightCareKeywords(r.prayerRequest)}</p>
               </div>` : ''}
             </div>
           </div>
