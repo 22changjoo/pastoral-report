@@ -259,17 +259,6 @@
       align-items: center;
     }
 
-    .default-badge {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--green-dark);
-      background: var(--green-light);
-      padding: 2px 6px;
-      border-radius: 6px;
-      vertical-align: middle;
-      margin-left: 4px;
-    }
-
     .filter-save-default {
       padding: 6px 10px;
       background: #FFF8E1;
@@ -466,9 +455,9 @@
       <div class="filter-bar">
         <div class="filter-row">
           <div class="filter-field">
-            <label>초장 <span id="defaultBadge" class="default-badge" style="display: none;">★ 담당 초장</span></label>
+            <label>초장</label>
             <div class="chojang-input-group">
-              <select id="filterChoJang" onchange="updateDefaultBadge()">
+              <select id="filterChoJang">
                 <option value="">전체 초장 (전체보기)</option>
                 <option value="1초장">1초장</option>
                 <option value="2/3초장">2/3초장</option>
@@ -476,7 +465,7 @@
                 <option value="5초장">5초장</option>
                 <option value="6초장">6초장</option>
               </select>
-              <button class="filter-save-default" onclick="saveDefaultChoJang()" title="선택한 초장을 첫 화면 담당초장으로 설정합니다">★ 담당초장 설정하기</button>
+              <button class="filter-save-default" onclick="saveDefaultChoJang()" title="선택한 초장을 첫 화면 기본보기로 설정합니다">기본보기설정</button>
             </div>
           </div>
         </div>
@@ -555,7 +544,6 @@
       if (savedChoJang !== null) {
         document.getElementById('filterChoJang').value = savedChoJang;
       }
-      updateDefaultBadge();
 
       loadReports();
     }
@@ -646,32 +634,15 @@
       document.getElementById('filterChoJang').value = '';
       document.getElementById('filterFrom').value = '';
       document.getElementById('filterTo').value = '';
-      updateDefaultBadge();
       renderReports(allReports);
     }
 
-    // ── 기본 초장 설정 저장 & 배지 업데이트 ──
+    // ── 기본보기 설정 저장 ──
     function saveDefaultChoJang() {
       const choJang = document.getElementById('filterChoJang').value;
       localStorage.setItem('defaultChoJang', choJang);
-      updateDefaultBadge();
       const displayChoJang = choJang ? choJang : '전체 초장';
-      alert(`'${displayChoJang}'(이)가 첫 화면 담당 초장으로 설정되었습니다.`);
-    }
-
-    function updateDefaultBadge() {
-      const savedChoJang = localStorage.getItem('defaultChoJang');
-      const currentChoJang = document.getElementById('filterChoJang').value;
-      const badge = document.getElementById('defaultBadge');
-      if (!badge) return;
-      
-      // 저장된 기본 초장값과 현재 선택된 값이 일치하는 경우 배지 표시
-      // (저장된 적이 없는 경우 기본값 ""(전체 초장) 일 때 배지 표시)
-      if ((savedChoJang === null && currentChoJang === '') || (savedChoJang !== null && savedChoJang === currentChoJang)) {
-        badge.style.display = 'inline-block';
-      } else {
-        badge.style.display = 'none';
-      }
+      alert(`'${displayChoJang}'(이)가 첫 화면 기본보기로 설정되었습니다.`);
     }
 
     // 장소 문자열 정제 및 교실 자동 추가
