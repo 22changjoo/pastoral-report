@@ -139,53 +139,60 @@ function getShilMulGaMap() {
   if (!values || values.length === 0) return {};
 
   const result = {};
-
-  // 1. 컬럼 헤더 분석 (가로형 또는 세로형 구조)
   const header = values[0].map(v => String(v).trim());
+
+  // 1. 가로형 헤더 구조 체크 (예: 1행이 '4초장', '5초장', '6초장' 등)
+  const isHorizontal = header.some(h => h.match(/\d+초장/));
+
+  if (isHorizontal) {
+    header.forEach((colName, colIdx) => {
+      const matched = colName.match(/\d+초장/);
+      if (matched) {
+        const choJangKey = matched[0];
+        if (!result[choJangKey]) result[choJangKey] = [];
+
+        // 1번 행부터 아래로 쉴물가 목록 수집
+        for (let r = 1; r < values.length; r++) {
+          const val = String(values[r][colIdx]).trim();
+          if (val && !val.match(/^\d+초장$/) && !result[choJangKey].includes(val)) {
+            result[choJangKey].push(val);
+          }
+        }
+      }
+    });
+    return result;
+  }
+
+  // 2. 세로형 구조 체크 (1행이 '초장', '쉴물가이름' 컬럼)
   const choJangColIdx = header.findIndex(h => h.includes('초장') && !h.match(/^\d+초장$/));
   const shilMulGaColIdx = header.findIndex(h => h.includes('쉴물가') || h.includes('이름') || h.includes('목자'));
 
   if (choJangColIdx !== -1 && shilMulGaColIdx !== -1 && choJangColIdx !== shilMulGaColIdx) {
-    // 세로형 구조 (A열: 초장, B열: 쉴물가이름 등)
     for (let i = 1; i < values.length; i++) {
       const choJang = String(values[i][choJangColIdx]).trim();
       const shilMulGa = String(values[i][shilMulGaColIdx]).trim();
-      if (choJang && shilMulGa) {
+      if (choJang && shilMulGa && !shilMulGa.match(/^\d+초장$/)) {
         if (!result[choJang]) result[choJang] = [];
         if (!result[choJang].includes(shilMulGa)) {
           result[choJang].push(shilMulGa);
         }
       }
     }
-  } else {
-    // 가로형 구조 (컬럼명이 '4초장', '5초장', '6초장' 등)
-    header.forEach((colName, colIdx) => {
-      const matchedChoJang = colName.match(/\d+초장/);
-      const keyName = matchedChoJang ? matchedChoJang[0] : colName;
-      if (keyName && (keyName.includes('초장') || matchedChoJang)) {
-        if (!result[keyName]) result[keyName] = [];
-        for (let rowIdx = 1; rowIdx < values.length; rowIdx++) {
-          const val = String(values[rowIdx][colIdx]).trim();
-          if (val && !result[keyName].includes(val)) {
-            result[keyName].push(val);
-          }
-        }
-      }
-    });
+    return result;
+  }
 
-    // 헤더 행이 없는 무헤더 목록 스캔 또는 복합 셀 스캔
-    for (let r = 0; r < values.length; r++) {
-      for (let c = 0; c < values[r].length; c++) {
-        const val = String(values[r][c]).trim();
-        if (!val) continue;
-        const m = val.match(/(\d+초장)/);
-        if (m) {
-          const cho = m[1];
-          const namePart = val.replace(cho, '').trim();
-          if (namePart) {
-            if (!result[cho]) result[cho] = [];
-            if (!result[cho].includes(namePart)) result[cho].push(namePart);
-          }
+  // 3. 기타 자유 형식 스캔 (1행 스킵)
+  for (let r = 1; r < values.length; r++) {
+    for (let c = 0; c < values[r].length; c++) {
+      const val = String(values[r][c]).trim();
+      if (!val) continue;
+      const m = val.match(/(\d+초장)/);
+      if (m) {
+        const cho = m[1];
+        const namePart = val.replace(cho, '').trim();
+        if (namePart && !namePart.match(/^\d+초장$/)) {
+          if (!result[cho]) result[cho] = [];
+          if (!result[cho].includes(namePart)) result[cho].push(namePart);
         }
       }
     }
