@@ -389,7 +389,7 @@
     let shilMulGaMap = {};
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQjw9EIe9nbpmBXNl67vX03nFXyBVo4TYevBAsXNagpduVIr4BRN3_jANcj4DbfYqfyw/exec';
 
-    // 백엔드에서 초장별 쉴물가 목록 불러오기
+    // 백엔드에서 초장별 쉴물가 목록 불러오기 (JSONP 안전 로딩)
     function loadShilMulGaData() {
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
@@ -399,15 +399,27 @@
           })
           .getShilMulGaMap();
       } else {
-        fetch(SCRIPT_URL + '?action=getShilMulGaMap')
-          .then(res => res.json())
-          .then(resData => {
-            if (resData && resData.success && resData.data) {
-              shilMulGaMap = resData.data;
-              updateShilMulGaOptions();
-            }
-          })
-          .catch(err => console.log('쉴물가 목록 로드 오류:', err));
+        const callbackName = 'onShilMulGaLoaded_' + Math.floor(Math.random() * 100000);
+        window[callbackName] = function(resData) {
+          try { delete window[callbackName]; } catch(e) {}
+          if (resData && resData.success && resData.data) {
+            shilMulGaMap = resData.data;
+            updateShilMulGaOptions();
+          }
+        };
+        const script = document.createElement('script');
+        script.src = SCRIPT_URL + '?action=getShilMulGaMap&callback=' + callbackName + '&_t=' + Date.now();
+        script.onerror = function() {
+          fetch(SCRIPT_URL + '?action=getShilMulGaMap')
+            .then(res => res.json())
+            .then(resData => {
+              if (resData && resData.success && resData.data) {
+                shilMulGaMap = resData.data;
+                updateShilMulGaOptions();
+              }
+            }).catch(function(e){ console.log(e); });
+        };
+        document.body.appendChild(script);
       }
     }
 
