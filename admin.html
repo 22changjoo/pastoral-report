@@ -329,9 +329,24 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
       overflow: hidden;
       cursor: pointer;
-      transition: box-shadow 0.15s;
+      transition: box-shadow 0.15s, border-color 0.15s;
     }
     .report-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+
+    .report-card.care-needed {
+      border-left: 4.5px solid #e53935;
+      background: #FFF8F8;
+    }
+    .care-needed-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: #c62828;
+      background: #FFEBEE;
+      padding: 2px 7px;
+      border-radius: 6px;
+      border: 1px solid #FFCDD2;
+      flex-shrink: 0;
+    }
 
     .report-card-header {
       padding: 16px 20px;
@@ -665,11 +680,11 @@
       const meetingCount = meetingShilMulGaSet.size;
       const careCount = careShilMulGaSet.size;
 
-      document.getElementById('statMeetingCount').textContent = `${meetingCount}곳`;
+      document.getElementById('statMeetingCount').textContent = meetingCount;
       const scopeLabel = choJangFilter ? choJangFilter : '전체';
       document.getElementById('statMeetingSub').textContent = `${scopeLabel} 모임 실시`;
 
-      document.getElementById('statPrayerCount').textContent = `${careCount}곳`;
+      document.getElementById('statPrayerCount').textContent = careCount;
       document.getElementById('statPrayerSub').textContent = isPrayerFilterActive ? '🚨 모아보기 적용중' : '긴급돌봄·장기결석';
     }
 
@@ -809,10 +824,16 @@
         return timeB - timeA;
       });
 
-      list.innerHTML = sorted.map((r, i) => `
-        <div class="report-card" id="card-${i}">
+      list.innerHTML = sorted.map((r, i) => {
+        const isCare = isCareNeededReport(r);
+        const cardClass = isCare ? 'report-card care-needed' : 'report-card';
+        const badgeHtml = isCare ? '<span class="care-needed-badge">🚨 심방필요</span>' : '';
+
+        return `
+        <div class="${cardClass}" id="card-${i}">
           <div class="report-card-header" onclick="toggleCard(${i})">
             <div class="report-card-left">
+              ${badgeHtml}
               <span class="chojang-badge" style="${getChojangColor(r.choJang)}">${r.choJang}</span>
               <div>
                 <div class="report-title">${r.shilMulGa}</div>
@@ -853,7 +874,8 @@
             </div>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function toggleCard(i) {
