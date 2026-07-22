@@ -632,12 +632,13 @@
       }
     }
 
-    // ── 오탐 예외 패턴 (사고 예방 기도 / 단순 감사 및 일상 표현) ──
+    // ── 오탐 예외 패턴 (사고 예방 기도 / '분위기' 등 일상 표현) ──
     const EXCLUDE_PATTERNS = [
-      /사고\s*(없이|없게|안|나지|않|예방|지켜|없기)/,
-      /사고로\s*이어지지\s*않/,
-      /사고\s*나지\s*않/,
-      /유쾌/
+      /사고\s*(없이|없게|안|나지|않|예방|지켜|없기)/g,
+      /사고로\s*이어지지\s*않/g,
+      /사고\s*나지\s*않/g,
+      /분위기/g,  // '분위기' 단어 안의 '위기' 오탐 방지
+      /유쾌/g
     ];
 
     // ── 긴급 심방/돌봄 및 장기결석 키워드 선별 ──
@@ -662,14 +663,17 @@
 
       if (!text.trim()) return false;
 
-      // 1. 사고 예방 기도 등 오탐 예외 패턴이 있으면 예외 대상 여부 체크
-      const hasExclude = EXCLUDE_PATTERNS.some(pattern => pattern.test(text));
+      // 예외 문구(분위기, 사고 예방 기도 등)를 제거한 텍스트로 순수 긴급 키워드 검사
+      let cleanText = text;
+      EXCLUDE_PATTERNS.forEach(pattern => {
+        cleanText = cleanText.replace(pattern, '');
+      });
 
-      // 2. 핵심 위기/장기결석 키워드 검사
-      let hasKeyword = CARE_KEYWORDS.some(kw => text.includes(kw));
-      
-      // 3. '사고' 단어가 들어있지만 예외 패턴이 아닌 실제 사고건인 경우
-      if (!hasKeyword && !hasExclude && text.includes('사고')) {
+      // 1. 순수 텍스트에서 긴급 키워드 검사
+      let hasKeyword = CARE_KEYWORDS.some(kw => cleanText.includes(kw));
+
+      // 2. '사고' 단어가 들어있지만 예외 패턴이 아니었던 실제 사고건인 경우
+      if (!hasKeyword && cleanText.includes('사고')) {
         hasKeyword = true;
       }
 
