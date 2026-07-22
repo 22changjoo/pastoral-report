@@ -143,6 +143,36 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
 
+    .stat-card.clickable-card {
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background-color 0.15s;
+      border: 1.5px solid transparent;
+      user-select: none;
+    }
+    .stat-card.clickable-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-color: #C8E6C9;
+    }
+    .stat-card.clickable-card.active {
+      background: #E8F5E9;
+      border-color: var(--green);
+    }
+    .click-hint {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--green);
+      background: var(--green-light);
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .stat-card.clickable-card.active .click-hint {
+      background: var(--green);
+      color: white;
+    }
+
     .stat-label { font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 4px; }
     .stat-value { font-size: 26px; font-weight: 800; color: var(--green-dark); line-height: 1; }
     .stat-sub { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
@@ -439,15 +469,15 @@
     <div class="main">
       <!-- 통계 -->
       <div class="stats-grid" id="statsGrid">
-        <div class="stat-card">
-          <div class="stat-label">📅 이번 달 보고서</div>
-          <div class="stat-value" id="statThisMonth">—</div>
-          <div class="stat-sub" id="statMonthLabel">—</div>
+        <div class="stat-card" id="cardMeetingChojangs">
+          <div class="stat-label">🌿 모임 실시 쉴물가</div>
+          <div class="stat-value" id="statMeetingCount">—</div>
+          <div class="stat-sub" id="statMeetingSub">선택 기간 모임 진행 쉴물가</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">🔥 이번 주 보고서</div>
-          <div class="stat-value" id="statThisWeek">—</div>
-          <div class="stat-sub">최근 7일</div>
+        <div class="stat-card clickable-card" id="cardPrayerReports" onclick="togglePrayerFilter()" title="클릭 시 기도제목/특이사항이 있는 보고서만 모아봅니다">
+          <div class="stat-label">🙏 기도제목 · 특이사항 <span class="click-hint">클릭시 모아보기</span></div>
+          <div class="stat-value" id="statPrayerCount">—</div>
+          <div class="stat-sub" id="statPrayerSub">돌봄·중보기도 필요 쉴물가</div>
         </div>
       </div>
 
@@ -571,23 +601,48 @@
       }
     }
 
+    // ── 스마트 필터 (기도제목/특이사항 모아보기) ──
+    let isPrayerFilterActive = false;
+
+    function togglePrayerFilter() {
+      isPrayerFilterActive = !isPrayerFilterActive;
+      const card = document.getElementById('cardPrayerReports');
+      if (isPrayerFilterActive) {
+        card.classList.add('active');
+      } else {
+        card.classList.remove('active');
+      }
+      applyFilter();
+    }
+
     // ── 통계 ──
-    function renderStats(reports) {
-      const now = new Date();
-      const thisMonth = now.getMonth();
-      const thisYear = now.getFullYear();
-      const weekAgo = new Date(now - 7 * 86400000);
+    function renderStats(reports, choJangFilter) {
+      // 1. 선택 조건 내 모임을 진행한 유니크 쉴물가 개수
+      const meetingShilMulGaSet = new Set(
+        reports.map(r => (r.shilMulGa || '').trim()).filter(Boolean)
+      );
 
-      const monthReports = reports.filter(r => {
-        const d = new Date(r.submitDate);
-        return d.getFullYear() === thisYear && d.getMonth() === thisMonth;
+      // 2. 기도제목 또는 모임 평가/건의가 적힌 유니크 쉴물가 개수
+      const prayerShilMulGaSet = new Set();
+      reports.forEach(r => {
+        const hasPrayer = r.prayerRequest && r.prayerRequest.trim() && r.prayerRequest !== '없음';
+        const hasEval = r.evaluation && r.evaluation.trim() && r.evaluation !== '없음';
+        if (hasPrayer || hasEval) {
+          if (r.shilMulGa && r.shilMulGa.trim()) {
+            prayerShilMulGaSet.add(r.shilMulGa.trim());
+          }
+        }
       });
-      const weekReports = reports.filter(r => new Date(r.submitDate) >= weekAgo);
-      const choJangSet = new Set(reports.map(r => r.choJang));
 
-      document.getElementById('statThisMonth').textContent = monthReports.length;
-      document.getElementById('statMonthLabel').textContent = `${thisMonth + 1}월`;
-      document.getElementById('statThisWeek').textContent = weekReports.length;
+      const meetingCount = meetingShilMulGaSet.size;
+      const prayerCount = prayerShilMulGaSet.size;
+
+      document.getElementById('statMeetingCount').textContent = `${meetingCount}곳`;
+      const scopeLabel = choJangFilter ? choJangFilter : '전체';
+      document.getElementById('statMeetingSub').textContent = `${scopeLabel} 모임 실시`;
+
+      document.getElementById('statPrayerCount').textContent = `${prayerCount}곳`;
+      document.getElementById('statPrayerSub').textContent = isPrayerFilterActive ? '🙏 모아보기 필터 적용중' : '돌봄·중보기도 필요';
     }
 
     // ── 날짜 문자열을 로컬 Date 객체로 파싱 (형식 무관) ──
@@ -627,6 +682,18 @@
         });
       }
 
+      // 1. 초장 및 날짜 조건 기준 통계 집계
+      renderStats(filtered, choJang);
+
+      // 2. 기도제목 모아보기 버튼 활성화 시 추가 필터링
+      if (isPrayerFilterActive) {
+        filtered = filtered.filter(r => {
+          const hasPrayer = r.prayerRequest && r.prayerRequest.trim() && r.prayerRequest !== '없음';
+          const hasEval = r.evaluation && r.evaluation.trim() && r.evaluation !== '없음';
+          return hasPrayer || hasEval;
+        });
+      }
+
       renderReports(filtered);
     }
 
@@ -634,7 +701,10 @@
       document.getElementById('filterChoJang').value = '';
       document.getElementById('filterFrom').value = '';
       document.getElementById('filterTo').value = '';
-      renderReports(allReports);
+      isPrayerFilterActive = false;
+      const card = document.getElementById('cardPrayerReports');
+      if (card) card.classList.remove('active');
+      applyFilter();
     }
 
     // ── 기본보기 설정 저장 ──
