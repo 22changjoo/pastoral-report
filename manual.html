@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>목사님을 위한 쉴물가 보고서 대시보드 사용 가이드</title>
+
+  <!-- Pretendard 웹폰트 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+
+  <style>
+    :root {
+      --primary: #2E7D32;
+      --primary-dark: #1B5E20;
+      --primary-light: #E8F5E9;
+      --primary-mid: #C8E6C9;
+      --accent-red: #c62828;
+      --accent-red-bg: #FFF8F8;
+      --text: #1F2937;
+      --text-muted: #6B7280;
+      --bg: #F3F4F6;
+      --card-bg: #FFFFFF;
+      --border: #E5E7EB;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 32px 16px 64px;
+    }
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    /* ── 상단 헤더 ── */
+    .header {
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #388E3C 100%);
+      color: white;
+      border-radius: 20px;
+      padding: 40px 32px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 200px;
+      height: 200px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .header-logo {
+      margin-bottom: 16px;
+    }
+    .header-logo img {
+      height: 36px;
+      width: auto;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 15px;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+
+    .print-btn-wrap {
+      margin-top: 20px;
+    }
+    .print-btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: white;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s;
+    }
+    .print-btn:hover {
+      background: white;
+      color: var(--primary-dark);
+    }
+
+    /* ── 섹션 공통 ── */
+    .section {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 32px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 12px;
+    }
+
+    .section-title .badge-icon {
+      background: var(--primary-light);
+      color: var(--primary);
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ── 4대 핵심 기능 카드 ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 640px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
+
+    .feature-card {
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 14px;
+      padding: 20px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .feature-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary-mid);
+    }
+
+    .feature-icon {
+      font-size: 26px;
+      margin-bottom: 10px;
+    }
+
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .feature-card p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ── 가상 UI Mockup 인터페이스 ── */
+    .mockup-container {
+      background: #1E293B;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      margin: 20px 0;
+      border: 1px solid #334155;
+    }
+
+    .mockup-header {
+      background: #0F172A;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .dot.red { background: #EF4444; }
+    .dot.yellow { background: #F59E0B; }
+    .dot.green { background: #10B981; }
+
+    .mockup-title {
+      color: #94A3B8;
+      font-size: 11px;
+      margin-left: 8px;
+      font-family: monospace;
+    }
+
+    .mockup-body {
+      background: #F4F6F4;
+      padding: 20px;
+    }
+
+    /* Mockup 내부 요소 커스텀 */
+    .mockup-topbar {
+      background: var(--primary);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .mockup-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .mockup-stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+      border: 2px solid transparent;
+    }
+    .mockup-stat-card.active {
+      background: #E8F5E9;
+      border-color: var(--primary);
+    }
+    .mockup-stat-card.urgent {
+      border: 2px dashed #EF4444;
+      background: #FEF2F2;
+    }
+
+    .mockup-report-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+    .mockup-report-card.care-needed {
+      border-left: 5px solid var(--accent-red);
+      background: var(--accent-red-bg);
+    }
+
+    .kw-mark {
+      background-color: #FFE082;
+      color: #B71C1C;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    /* ── 가이드 스텝 리스트 ── */
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      background: var(--primary);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content h4 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .step-content p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .tip-box {
+      background: #EFF6FF;
+      border-left: 4px solid #3B82F6;
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      font-size: 13.5px;
+      color: #1E40AF;
+      margin-top: 8px;
+    }
+
+    .tip-box strong {
+      color: #1E3A8A;
+    }
+
+    /* ── PWA 안내 가이드 ── */
+    .pwa-steps {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .pwa-steps { grid-template-columns: 1fr; }
+    }
+
+    .pwa-box {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .pwa-box h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pwa-box ol {
+      padding-left: 20px;
+      font-size: 13.5px;
+      color: var(--text);
+    }
+
+    .pwa-box li {
+      margin-bottom: 6px;
+    }
+
+    /* ── 푸터 ── */
+    .footer {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* ── 인쇄용 CSS ── */
+    @media print {
+      body { background: white; padding: 0; }
+      .container { max-width: 100%; }
+      .section { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+      .print-btn-wrap { display: none; }
+      .header { background: var(--primary) !important; color: white !important; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- ── 상단 헤더 ── -->
+    <header class="header">
+      <div class="header-logo">
+        <img src="https://igodswill.org/wp-content/uploads/2025/01/logo02.png" alt="높은뜻푸른교회" />
+      </div>
+      <h1>쉴물가 보고서 대시보드 사용 가이드</h1>
+      <p>목사님 사역을 돕는 스마트 모임 현황 & 심방 관리 대시보드 안내서</p>
+      
+      <div class="print-btn-wrap">
+        <button class="print-btn" onclick="window.print()">🖨️ 설명서 인쇄 / PDF 저장</button>
+      </div>
+    </header>
+
+    <!-- ── 한눈에 보는 핵심 기능 ── -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="badge-icon">✨</span>
+        대시보드 4대 핵심 기능
+      </h2>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🌿</div>
+          <h3>모임 실시 현황 자동 집계</h3>
+          <p>선택한 초장 및 조회 기간 내에 실제 모임을 실시한 쉴물가(목자) 수와 전체 보고서 제출 건수를 자동으로 보여줍니다.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🚨</div>
+          <h3>AI 스마트 심방필요 모아보기</h3>
+          <p>입원, 수술, 장기결석, 우울, 위기, 부고 등 돌봄이 필요한 소식을 지능적으로 감지하여 버튼 하나로 모아서 확인합니다.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📌</div>
+          <h3>담당 초장 고정 (핀 기능)</h3>
+          <p>목사님이 담당하시는 초장(예: 1초장)을 핀 버튼으로 저장하면 접속 시 자동으로 해당 초장 보고서부터 펼쳐집니다.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>스마트폰 앱(PWA) 추가 지원</h3>
+          <p>별도 앱설치 없이 아이폰/안드로이드 홈화면에 '목자 대시보드' 앱으로 등록하여 언제 어디서나 즉시 조회할 수 있습니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 기능 1: 심방 필요 1클릭 모아보기 ── -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="badge-icon">🚨</span>
+        1. 심방필요 & 긴급 돌봄건 1클릭 모아보기
+      </h2>
+
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>상단 [🚨 심방필요 - 모아보기] 카드를 클릭하세요</h4>
+            <p>대시보드 상단 오른쪽 통계 카드인 <code>🚨 심방필요</code> 카드를 누르면, 긴급 목양이 필요한 쉴물가의 보고서만 한눈에 모아서 필터링됩니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 인터랙티브 시뮬레이션 UI -->
+      <div class="mockup-container">
+        <div class="mockup-header">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+          <span class="mockup-title">DASHBOARD SCREENSHOT — 심방필요 모아보기</span>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-stats">
+            <div class="mockup-stat-card">
+              <div style="font-size:12px; font-weight:700; color:#888;">🌿 모임실시</div>
+              <div style="font-size:22px; font-weight:800; color:#1B5E20;">12개 쉴물가</div>
+              <div style="font-size:11px; color:#888;">선택 기간 모임 진행</div>
+            </div>
+
+            <!-- 활성화된 카드 -->
+            <div class="mockup-stat-card active urgent" style="cursor:pointer;">
+              <div style="font-size:12px; font-weight:700; color:#c62828;">🚨 심방필요 <span style="background:#c62828; color:white; padding:2px 6px; border-radius:6px; font-size:10px;">모아보기 적용중</span></div>
+              <div style="font-size:22px; font-weight:800; color:#c62828;">2개 쉴물가</div>
+              <div style="font-size:11px; color:#c62828;">긴급돌봄·장기결석 감지</div>
+            </div>
+          </div>
+
+          <!-- 예시 보고서 카드 -->
+          <div class="mockup-report-card care-needed">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="background:#FFEBEE; color:#c62828; font-weight:bold; font-size:12px; padding:3px 8px; border-radius:6px;">🚨 1초장 · 관악 쉴물가</span>
+              <span style="font-size:12px; color:#888;">2026.04.24.</span>
+            </div>
+            <div style="font-size:13.5px; color:#333; line-height:1.5;">
+              <strong>불참 사유:</strong> 이○○ 성도님 <span class="kw-mark">수술</span> 후 <span class="kw-mark">입원</span> 중으로 불참<br>
+              <strong>🙏 기도제목:</strong> 이번 주 목요일 <span class="kw-mark">치료</span>가 잘 진행되도록 빠른 회복을 위해 기도 부탁드립니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <strong>💡 오탐 방지 알고리즘 내장:</strong> "사고 없이 모임 잘 마쳤습니다" 또는 "유쾌한 분위기"처럼 '사고', '위기' 단어가 들어가더라도 단순 일상 표현인 경우 자동으로 차단되고, <u>실제 긴급 심방이 필요한 항목만 정밀 추출</u>됩니다.
+      </div>
+    </section>
+
+    <!-- ── 기능 2: 초장 지정 & 📌 핀 고정 ── -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="badge-icon">📌</span>
+        2. 내 담당 초장 선택 및 📌 핀 고정
+      </h2>
+
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>담당 교구(초장)를 선택 후 📌 버튼을 누르세요</h4>
+            <p>초장 선택창에서 본인의 담당 초장(예: 1초장, 2/3초장 등)을 선택한 뒤 바로 옆의 <strong>📌 핀 버튼</strong>을 누르면 첫 화면 설정이 완료됩니다.</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>로그인 시 자동으로 내 초장이 조회됩니다</h4>
+            <p>이후에는 대시보드에 접속하실 때마다 번거롭게 필터를 바꾸실 필요 없이, 목사님의 담당 초장 보고서가 자동으로 가장 먼저 나타납니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-container">
+        <div class="mockup-header">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+          <span class="mockup-title">FILTER BAR — 핀 버튼 활용</span>
+        </div>
+        <div class="mockup-body">
+          <div style="background:white; padding:14px; border-radius:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <div style="flex:1; min-width:140px;">
+              <span style="font-size:11px; font-weight:700; color:#888; display:block; margin-bottom:4px;">초장 선택</span>
+              <div style="display:flex; gap:6px;">
+                <select style="width:100%; padding:8px; border:1.5px solid #2E7D32; border-radius:8px; font-size:14px; font-weight:600;">
+                  <option>1초장 (선택됨)</option>
+                </select>
+                <button style="background:#FFF8E1; border:1.2px solid #FFE082; color:#E65100; font-size:16px; padding:0 12px; border-radius:8px; cursor:pointer;" title="첫 화면 저장">📌</button>
+              </div>
+            </div>
+            <div style="flex:2; min-width:200px;">
+              <span style="font-size:11px; font-weight:700; color:#888; display:block; margin-bottom:4px;">조회 기간</span>
+              <div style="font-size:13px; color:#555; padding:8px; background:#fafafa; border:1px solid #ddd; border-radius:8px;">
+                2026-04-01 ~ 2026-04-24
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 기능 3: 보고서 상세 보기 및 키워드 하이라이트 ── -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="badge-icon">🔍</span>
+        3. 보고서 카드 상세 보기 및 주요 모임 내용
+      </h2>
+
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>보고서 카드를 터치/클릭하면 내용이 펼쳐집니다</h4>
+            <p>목자 이름, 모임 날짜, 장소(예: 1-7 교실)가 요약 표시되어 있으며, 클릭하면 참석자/불참 사유/소감/기도제목이 확장 표시됩니다.</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>노란색 하이라이트로 긴급 키워드가 강조됩니다</h4>
+            <p>기도제목이나 불참 사유에 <code>입원</code>, <code>수술</code>, <code>장기결석</code>, <code>우울</code> 등의 중요한 단어가 포함된 경우 시스템이 시각적으로 즉시 알아볼 수 있게 강조합니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 기능 4: 모바일 PWA 앱 등록 가이드 ── -->
+    <section class="section">
+      <h2 class="section-title">
+        <span class="badge-icon">📲</span>
+        4. 스마트폰 홈화면에 앱(PWA) 추가하는 방법
+      </h2>
+      <p style="margin-bottom:16px; font-size:14px; color:var(--text-muted);">
+        스마트폰 웹 브라우저로 대시보드 주소에 접속하신 후, 아래 절차대로 홈화면에 추가하시면 어플리케이션처럼 편리하게 바로 실행할 수 있습니다.
+      </p>
+
+      <div class="pwa-steps">
+        <div class="pwa-box">
+          <h4>아이폰 (Safari 브라우저)</h4>
+          <ol>
+            <li>Safari로 대시보드 페이지 접속</li>
+            <li>하단 중앙의 <strong>공유 버튼 (Square with Arrow)</strong> 터치</li>
+            <li>메뉴를 아래로 내려 <strong>[홈 화면에 추가]</strong> 선택</li>
+            <li>우측 상단 <strong>[추가]</strong> 터치 완료</li>
+          </ol>
+        </div>
+
+        <div class="pwa-box">
+          <h4>안드로이드 (Chrome 브라우저)</h4>
+          <ol>
+            <li>Chrome으로 대시보드 페이지 접속</li>
+            <li>우측 상단 <strong>점 3개 메뉴 (⋮)</strong> 터치</li>
+            <li><strong>[앱 설치]</strong> 또는 <strong>[홈 화면에 추가]</strong> 선택</li>
+            <li>팝업 창에서 <strong>[추가]</strong> 터치 완료</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 목자용 보고서 작성 폼 안내 ── -->
+    <section class="section" style="background:#F0F4F0; border-color:#C8E6C9;">
+      <h2 class="section-title" style="color:var(--primary-dark);">
+        <span class="badge-icon" style="background:#2E7D32; color:white;">📝</span>
+        참고: 쉴물가 목자용 보고서 작성 시스템 (`index.html`)
+      </h2>
+      <p style="font-size:14px; color:#333; line-height:1.6;">
+        목자님들께 공유되는 제출 링크는 스마트폰 최적화 폼으로 구성되어 있습니다.<br>
+        - **쉴물가 자동완성**: 초장을 선택하고 이름을 입력하면 등록된 쉴물가명이 자동 추천됩니다.<br>
+        - **참석자 자동 계산**: 성함을 쉼표(,)로 작성하면 인원수가 자동 계산됩니다.<br>
+        - **모임 내용 칩 버튼**: 말씀나눔, 기도나눔, 교제, 식사 등을 손가락으로 가볍게 터치하여 제출합니다.
+      </p>
+    </section>
+
+    <!-- ── 푸터 ── -->
+    <footer class="footer">
+      <p>높은뜻푸른교회 쉴물가 보고서 대시보드 시스템 · 목양 가이드라인</p>
+    </footer>
+  </div>
+
+</body>
+</html>
